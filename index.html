@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0050)file:///C:/Users/Fikreyesus/Downloads/index_2.html -->
+<!-- saved from url=(0050)file:///C:/Users/Fikreyesus/Downloads/index_3.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -487,32 +487,23 @@ const db = {
   async call(action, payload = {}) {
     if (!USE_DB) return null;
     try {
-      // Apps Script requires GET for reads, POST for writes
-      // Use GET with params for getSheet/ping, POST body as text/plain for mutations
       if (action === 'getSheet' || action === 'ping') {
-        const params = new URLSearchParams({
+        // Use JSONP for GET requests — bypasses CORS completely
+        return await jsonp(GS_WEBAPP_URL, {
           action,
           sheet: payload.sheet || '',
           sheetId: GS_SHEET_ID
         });
-        const r = await fetch(GS_WEBAPP_URL + '?' + params.toString(), {
-          method: 'GET',
-          redirect: 'follow'
-        });
-        if (!r.ok) { console.error('GS GET error', r.status); return null; }
-        const text = await r.text();
-        return JSON.parse(text);
       } else {
-        // POST mutations — Apps Script accepts text/plain body
-        payload.sheetId = GS_SHEET_ID;
+        // POST for mutations
         payload.action  = action;
+        payload.sheetId = GS_SHEET_ID;
         const r = await fetch(GS_WEBAPP_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify(payload),
           redirect: 'follow'
         });
-        if (!r.ok) { console.error('GS POST error', r.status); return null; }
         const text = await r.text();
         return JSON.parse(text);
       }
@@ -580,6 +571,31 @@ function invoiceToRow(inv) {
     billing_type: inv.billing||'direct', po_number: inv.po||'',
     device_count: inv.devices||0, total: inv.total, amount_paid: inv.paid||0,
     notes: inv.notes||'' };
+}
+
+
+// ── JSONP helper — only way to reliably call Apps Script cross-origin ──
+function jsonp(url, params) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'jsonp_cb_' + Date.now();
+    const timeout = setTimeout(() => {
+      delete window[cbName];
+      document.head.removeChild(script);
+      reject(new Error('JSONP timeout'));
+    }, 10000);
+    window[cbName] = function(data) {
+      clearTimeout(timeout);
+      delete window[cbName];
+      document.head.removeChild(script);
+      resolve(data);
+    };
+    const qs = Object.entries({ ...params, callback: cbName })
+      .map(([k,v]) => k + '=' + encodeURIComponent(v)).join('&');
+    const script = document.createElement('script');
+    script.src = url + '?' + qs;
+    script.onerror = () => { clearTimeout(timeout); reject(new Error('JSONP error')); };
+    document.head.appendChild(script);
+  });
 }
 
 // ── LOAD ALL DATA FROM SHEETS ─────────────────────────────────
