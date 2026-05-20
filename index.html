@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowRight - Invoice and Device Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0d1f3c;--navy-mid:#1a3258;--navy-light:#243e6a;--blue:#1e6fc8;--blue-light:#3a8de8;--accent:#f5a623;--white:#fff;--offwhite:#f4f6fb;--gray-light:#e4e9f4;--gray:#8a9bb5;--text:#1a2540;--text-muted:#4d6080;--green:#1a9e6e;--green-light:#e6f7f1;--red:#d94040;--red-light:#fdf0f0;--yellow-light:#fff8ec}
+html{font-size:15px}body{font-family:'DM Sans',sans-serif;background:var(--offwhite);color:var(--text);min-height:100vh}
+.topbar{background:var(--navy);border-bottom:3px solid var(--accent);display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:58px;position:sticky;top:0;z-index:200}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--white)}.logo span{color:var(--accent)}.logo small{font-size:13px;color:rgba(255,255,255,0.4);letter-spacing:0;font-family:'DM Sans',sans-serif;font-weight:400;margin-left:8px}
+.topbar-right{display:flex;align-items:center;gap:20px}
+.topbar-stat .val{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent);letter-spacing:1px;line-height:1}.topbar-stat .lbl{font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.8px}
+.topbar-div{width:1px;height:32px;background:rgba(255,255,255,0.1)}
+.shell{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 58px)}
+.sidebar{background:var(--navy-mid);padding:24px 0;display:flex;flex-direction:column;gap:2px}
+.sidebar-label{font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:16px 20px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13.5px;font-weight:500;color:rgba(255,255,255,0.55);cursor:pointer;border-left:3px solid transparent;transition:all .15s;user-select:none}
+.nav-item:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.05)}.nav-item.active{color:var(--accent);background:rgba(245,166,35,.08);border-left-color:var(--accent)}
+.nav-item .icon{font-size:16px;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;min-width:20px;text-align:center}
+.main{padding:28px 32px;overflow-y:auto}
+.view{display:none}.view.active{display:block}
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:16px}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:1.5px;color:var(--navy);line-height:1}.page-sub{font-size:13px;color:var(--text-muted);margin-top:4px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;border-radius:6px;cursor:pointer;border:none;transition:all .15s;white-space:nowrap;text-decoration:none}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-light);transform:translateY(-1px)}
+.btn-accent{background:var(--accent);color:var(--navy)}.btn-accent:hover{background:#ffc04d;transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1.5px solid var(--gray-light)}.btn-ghost:hover{border-color:var(--gray);color:var(--text)}
+.btn-danger{background:var(--red-light);color:var(--red);border:1.5px solid #f5c5c5}.btn-danger:hover{background:#fce8e8}
+.btn-green{background:var(--green-light);color:var(--green);border:1.5px solid #b2e8d4}.btn-green:hover{background:#d0f0e5}
+.btn-sm{padding:5px 12px;font-size:12px}
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.sum-card{background:var(--white);border:1px solid var(--gray-light);border-radius:10px;padding:20px 22px;position:relative;overflow:hidden}
+.sum-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sum-card.blue::before{background:var(--blue)}.sum-card.green::before{background:var(--green)}.sum-card.amber::before{background:var(--accent)}.sum-card.red::before{background:var(--red)}
+.sum-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:8px}
+.sum-value{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;color:var(--navy);line-height:1}.sum-sub{font-size:12px;color:var(--text-muted);margin-top:4px}
+.table-card{background:var(--white);border:1px solid var(--gray-light);border-radius:10px;overflow:hidden}
+.table-toolbar{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--gray-light);flex-wrap:wrap}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--offwhite);border:1.5px solid var(--gray-light);border-radius:6px;padding:7px 12px;flex:1;min-width:180px;max-width:320px}
+.search-box input{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;width:100%}
+.search-box input::placeholder{color:var(--gray)}
+.filter-select{padding:7px 12px;border:1.5px solid var(--gray-light);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--white);outline:none;cursor:pointer}
+.filter-select:focus{border-color:var(--blue)}
+table{width:100%;border-collapse:collapse}thead{background:var(--offwhite)}
+th{text-align:left;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--gray-light);white-space:nowrap;user-select:none}
+td{padding:11px 16px;font-size:13.5px;border-bottom:1px solid var(--gray-light);vertical-align:middle}
+tr:last-child td{border-bottom:none}tr:hover td{background:#fafbff}
+.inv-num{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.5px;color:var(--blue)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px;white-space:nowrap}
+.badge-paid{background:var(--green-light);color:var(--green)}.badge-unpaid{background:var(--red-light);color:var(--red)}.badge-partial{background:var(--yellow-light);color:#9a6c00}.badge-overdue{background:#fff0e6;color:#b84400}
+.amount{font-weight:600;color:var(--text)}
+.row-actions{display:flex;gap:6px;opacity:0;transition:opacity .15s}tr:hover .row-actions{opacity:1}
+.table-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--gray-light);font-size:12px;color:var(--text-muted)}
+.dev-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(30,111,200,.08);color:var(--blue);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px}
+.dev-pill.zero{background:var(--offwhite);color:var(--gray)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,31,60,.55);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:14px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid var(--gray-light);position:sticky;top:0;background:var(--white);z-index:1}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:var(--navy)}
+.modal-close{width:32px;height:32px;border-radius:6px;border:1.5px solid var(--gray-light);background:none;cursor:pointer;font-size:16px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.modal-close:hover{background:var(--offwhite);color:var(--text)}
+.modal-body{padding:24px 28px}.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 28px;border-top:1px solid var(--gray-light)}
+.cust-picker{background:var(--offwhite);border:1.5px solid var(--gray-light);border-radius:8px;padding:12px;margin-bottom:16px}
+.cust-picker-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:8px}
+.cust-picker-search{display:flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid var(--gray-light);border-radius:6px;padding:7px 12px;margin-bottom:8px}
+.cust-picker-search input{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;width:100%}
+.cust-picker-list{max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.cust-opt{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;transition:background .1s;border:1.5px solid transparent}
+.cust-opt:hover{background:var(--white);border-color:var(--gray-light)}.cust-opt.selected{background:rgba(30,111,200,.06);border-color:var(--blue);color:var(--blue)}
+.cust-opt-name{font-weight:500}.cust-opt-meta{font-size:11px;color:var(--text-muted);display:flex;gap:8px;align-items:center}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:5px}.form-group.full{grid-column:span 2}
+.form-group label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)}
+.form-group input,.form-group select,.form-group textarea{padding:9px 13px;border:1.5px solid var(--gray-light);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--text);background:var(--white);outline:none;transition:border-color .15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue)}
+.form-group textarea{resize:vertical;min-height:72px}
+.form-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--navy);margin:20px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--gray-light);grid-column:span 2}
+.autofilled{border-color:var(--green) !important;background:var(--green-light) !important}
+.li-table{width:100%;border-collapse:collapse;margin-top:8px}
+.li-table th{background:var(--offwhite);font-size:10px;padding:7px 10px;cursor:default}
+.li-table td{padding:6px 6px;border-bottom:1px solid var(--gray-light)}
+.li-table input,.li-table select{border:1.5px solid var(--gray-light);border-radius:4px;padding:5px 8px;font-family:'DM Sans',sans-serif;font-size:12.5px;width:100%;outline:none;transition:border-color .15s}
+.li-table input:focus,.li-table select:focus{border-color:var(--blue)}
+.li-total{font-weight:600;font-size:13px;color:var(--text);text-align:right;padding:5px 8px}
+.rm-line{background:none;border:none;cursor:pointer;color:var(--gray);font-size:16px;padding:2px 6px;border-radius:4px;transition:color .15s}.rm-line:hover{color:var(--red)}
+.inv-totals{margin-top:16px;background:var(--offwhite);border-radius:8px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.total-row{display:flex;gap:40px;font-size:13px}.total-row .lbl{color:var(--text-muted)}.total-row .val{font-weight:600;min-width:80px;text-align:right}
+.total-row.grand{border-top:1.5px solid var(--gray-light);padding-top:8px;margin-top:4px}.total-row.grand .lbl{font-weight:700;font-size:14px;color:var(--navy)}.total-row.grand .val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--navy);letter-spacing:.5px}
+.inv-preview{background:var(--white);border:1px solid var(--gray-light);border-radius:10px;padding:40px;max-width:760px;margin:0 auto}
+.inv-ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px;padding-bottom:24px;border-bottom:3px solid var(--navy)}
+.inv-logo{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;color:var(--navy)}.inv-logo span{color:var(--accent)}.inv-logo p{font-size:11px;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-weight:400;letter-spacing:0;margin-top:2px}
+.inv-meta{text-align:right}.inv-meta .iid{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--navy);letter-spacing:1px}.inv-meta p{font-size:12px;color:var(--text-muted);margin-top:2px}
+.inv-pb{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}.inv-ps h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:6px}.inv-ps p{font-size:13px;color:var(--text);line-height:1.6}
+.inv-t{width:100%;border-collapse:collapse;margin-bottom:20px}.inv-t th{background:var(--navy);color:#fff;padding:8px 12px;font-size:11px;text-align:left}.inv-t td{padding:9px 12px;font-size:13px;border-bottom:1px solid var(--gray-light)}.inv-t tr:nth-child(even) td{background:var(--offwhite)}
+.inv-tb{display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-top:8px}
+.inv-tl{display:flex;gap:32px;font-size:13px}.inv-tl.grand{border-top:2px solid var(--navy);padding-top:8px;margin-top:4px}.inv-tl.grand span:last-child{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--navy)}
+.inv-tl span:first-child{color:var(--text-muted);min-width:100px}.inv-tl span:last-child{font-weight:600;min-width:80px;text-align:right}
+.inv-fn{margin-top:28px;padding-top:16px;border-top:1px solid var(--gray-light);font-size:11px;color:var(--text-muted);text-align:center}
+.dev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:4px}
+.dev-card{background:var(--white);border:1px solid var(--gray-light);border-radius:10px;padding:20px 22px;transition:box-shadow .15s,border-color .15s}
+.dev-card:hover{border-color:var(--blue-light);box-shadow:0 4px 20px rgba(30,111,200,.1)}
+.dev-card-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.dev-card-name{font-weight:600;font-size:14.5px;color:var(--navy);line-height:1.3}.dev-card-addr{font-size:12px;color:var(--text-muted);margin-top:2px}
+.dev-card-body{display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:var(--text-muted)}
+.dev-card-row{display:flex;align-items:center;gap:7px}.dev-card-row strong{color:var(--text);min-width:60px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+.dev-card-actions{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--gray-light)}
+.alert-card{background:var(--white);border:1px solid var(--gray-light);border-radius:10px;overflow:hidden;margin-bottom:20px}
+.alert-hdr{background:var(--navy);padding:14px 20px;display:flex;align-items:center;gap:10px}.alert-hdr h3{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--white)}
+.alert-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.alert-row{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--gray-light);gap:12px;flex-wrap:wrap}.alert-row:last-child{border-bottom:none}
+.alert-days{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.5px}.days-60{color:#b84400}.days-90{color:var(--red)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted)}.empty-state .icon{font-size:48px;margin-bottom:16px}.empty-state h3{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}.empty-state p{font-size:13px}
+@media print{.topbar,.sidebar,.page-header,.table-toolbar,.table-footer,.modal-footer,.row-actions{display:none!important}.shell{display:block}.main{padding:0}.inv-preview{border:none;padding:0;box-shadow:none}}
+
+.detail-panel{position:fixed;top:58px;right:0;bottom:0;width:520px;background:var(--white);border-left:1px solid var(--gray-light);z-index:300;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease}
+.detail-panel.open{transform:translateX(0)}
+.detail-overlay{display:none;position:fixed;inset:0;top:58px;background:rgba(13,31,60,.25);z-index:299}
+.detail-overlay.open{display:block}
+.dp-header{background:var(--navy);padding:20px 24px;border-bottom:3px solid var(--accent);flex-shrink:0}
+.dp-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;color:var(--white);line-height:1}
+.dp-sub{font-size:12px;color:rgba(255,255,255,0.5);margin-top:3px}
+.dp-close{position:absolute;top:18px;right:20px;width:30px;height:30px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.2);background:none;cursor:pointer;font-size:14px;color:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.dp-close:hover{border-color:rgba(255,255,255,0.5);color:white}
+.dp-meta{display:flex;flex-wrap:wrap;gap:12px;padding:14px 20px;background:var(--offwhite);border-bottom:1px solid var(--gray-light);flex-shrink:0}
+.dp-meta-item{font-size:12px;color:var(--text-muted)}.dp-meta-item strong{color:var(--text);display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:1px}
+.dp-body{flex:1;overflow-y:auto;padding:0}
+.dp-section-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--gray-light);background:var(--white);position:sticky;top:0;z-index:1}
+.dp-section-hdr h3{font-size:13px;font-weight:700;color:var(--navy)}
+.dp-device-row{display:flex;align-items:flex-start;gap:12px;padding:14px 20px;border-bottom:1px solid var(--gray-light);transition:background .1s}
+.dp-device-row:hover{background:#fafbff}
+.dp-dev-num{width:28px;height:28px;border-radius:50%;background:rgba(30,111,200,.1);color:var(--blue);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.dp-dev-info{flex:1}
+.dp-dev-name{font-size:13.5px;font-weight:600;color:var(--navy)}
+.dp-dev-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px}
+.dp-dev-tag{font-size:11px;color:var(--text-muted);background:var(--offwhite);padding:2px 8px;border-radius:4px}
+.dp-dev-tag.pass{background:var(--green-light);color:var(--green)}.dp-dev-tag.fail{background:var(--red-light);color:var(--red)}.dp-dev-tag.due{background:#fff8ec;color:#9a6c00}
+.dp-dev-actions{display:flex;gap:6px;opacity:0;transition:opacity .15s;margin-top:2px}
+.dp-device-row:hover .dp-dev-actions{opacity:1}
+.dp-invoice-row{display:flex;align-items:center;justify-content:space-between;padding:11px 20px;border-bottom:1px solid var(--gray-light);font-size:13px}
+.dp-invoice-row:hover{background:#fafbff}
+
+/* ── LWC REPORT VIEW ── */
+.report-fill-bar{background:var(--white);border:1px solid var(--gray-light);border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.report-fill-bar label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)}
+.report-fill-bar .fill-select{padding:8px 12px;border:1.5px solid var(--gray-light);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--white);outline:none;min-width:200px}
+.report-fill-bar .fill-select:focus{border-color:var(--blue)}
+.form-page{margin-bottom:24px}
+.form-page-label{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.form-page-label span{font-size:13px;font-weight:600;color:var(--navy)}
+.form-page-label .device-badge{background:rgba(30,111,200,.1);color:var(--blue);font-size:12px;font-weight:700;padding:3px 10px;border-radius:4px}
+.form-page+.form-page{border-top:2px dashed var(--gray-light);padding-top:24px}
+.report-empty{text-align:center;padding:60px 20px;color:var(--gray)}
+.report-empty .icon{font-size:48px;margin-bottom:16px}
+.report-empty h3{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}
+.report-empty p{font-size:13px}
+@media print{.topbar,.sidebar,.report-fill-bar,.page-header,.form-page-label{display:none!important}.shell{display:block}.main{padding:0}.lwc-form{border:none} @page{margin:.5in;size:letter portrait}}
+.lwc-form{background:white;border:1px solid #ccc;font-family:Arial,Helvetica,sans-serif;font-size:9.5pt;color:#000;padding:14px 18px;line-height:1.3}
+
+/* Header */
+.lwc-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
+.lwc-logo-box{border:2px solid #000;padding:4px;width:72px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.lwc-logo-text{text-align:center}
+.lwc-logo-text .lwc-since{font-size:7pt}
+.lwc-title-block{flex:1;text-align:center}
+.lwc-co-name{font-size:15pt;font-weight:bold;letter-spacing:.5px}
+.lwc-fax-line{font-size:9pt;font-weight:bold;text-decoration:underline}
+.lwc-fax-nums{font-size:10pt;font-weight:bold}
+.lwc-report-title{font-size:11.5pt;font-weight:bold;margin-top:4px}
+.lwc-report-sub{font-size:8.5pt}
+.lwc-report-sub u{font-style:italic}
+
+/* Section headers */
+.sec-hdr{font-style:italic;font-weight:bold;font-size:9.5pt;margin:8px 0 4px}
+
+/* Field table */
+.field-table{width:100%;border-collapse:collapse}
+.field-table td,.field-table th{border:1px solid #000;padding:2px 4px;vertical-align:top;font-size:9pt}
+.field-label{font-weight:bold;white-space:nowrap;background:#fff}
+.field-val{font-family:Arial,Helvetica,sans-serif;font-size:9pt;min-height:16px;color:#000}
+.field-val.filled{color:#1a3c8e;font-weight:500}
+
+/* Test date box */
+.test-date-box{border:1px solid #000;padding:3px 8px;text-align:center;font-weight:bold;font-size:9pt;min-width:90px;display:inline-block}
+.test-date-val{font-size:10pt;font-weight:bold;color:#1a3c8e;min-height:16px}
+
+/* Checkboxes */
+.cb-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:9pt}
+.cb{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;border:1px solid #000;font-size:9pt;line-height:1;margin-right:2px;flex-shrink:0}
+.cb.checked::after{content:'×';font-size:10pt;font-weight:bold;line-height:1}
+.cb-label{margin-right:10px}
+
+/* Device data table */
+.dev-table{width:100%;border-collapse:collapse;margin-top:4px}
+.dev-table th{border:1px solid #000;padding:2px 4px;font-size:8.5pt;font-weight:bold;text-align:center;background:#f0f0f0}
+.dev-table td{border:1px solid #000;padding:3px 5px;font-size:9pt;min-height:22px;vertical-align:middle}
+.dev-table .filled{color:#1a3c8e;font-weight:500}
+.location-row td{font-weight:bold;font-size:9pt}
+
+/* Results section */
+.results-outer{border:1px solid #000;margin-top:4px}
+.results-header-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #000}
+.results-rpz-hdr{border-right:1px solid #000;padding:3px 6px;font-weight:bold;font-size:9.5pt;text-align:center}
+.results-pvb-hdr{padding:3px 6px;font-weight:bold;font-size:9.5pt;text-align:center}
+.results-sub-hdr{text-align:center;padding:2px 6px;font-weight:bold;font-size:9pt;border-bottom:1px solid #000;border-right:1px solid #000}
+
+.results-body{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1px solid #000}
+.rpz-col{grid-column:1;border-right:1px solid #000;padding:5px 8px;font-size:9pt}
+.cv1-col{grid-column:2;border-right:1px solid #000;padding:5px 8px;font-size:9pt}
+.cv2-col{grid-column:3;border-right:1px solid #000;padding:5px 8px;font-size:9pt}
+.pvb-col{grid-column:4;padding:5px 8px;font-size:9pt}
+
+.pf-row{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid #000}
+.pf-cell{padding:4px 8px;font-size:10pt;font-weight:bold;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
+.pf-cell:not(:last-child){border-right:1px solid #000}
+
+/* psid input inline */
+.psid-field{display:inline-block;border-bottom:1px solid #000;min-width:44px;font-family:Arial,sans-serif;font-size:9pt;text-align:center;color:#1a3c8e;font-weight:500;padding:0 2px}
+
+/* Repairs */
+.repairs-table{width:100%;border-collapse:collapse;margin-top:4px}
+.repairs-table td{border:1px solid #000;padding:3px 6px;font-size:9pt;min-height:18px}
+.repairs-label{font-weight:bold;white-space:nowrap;width:120px;vertical-align:top}
+
+/* Tester section */
+.tester-table{width:100%;border-collapse:collapse;margin-top:4px}
+.tester-table td{border:1px solid #000;padding:3px 6px;font-size:9pt;min-height:18px;vertical-align:middle}
+.tester-label{font-weight:bold;white-space:nowrap;width:110px}
+.tester-note{font-weight:bold;font-size:9.5pt;text-align:center;vertical-align:middle}
+
+/* Footer */
+.lwc-footer{margin-top:8px;font-size:8.5pt}
+.lwc-footer p:first-child{font-weight:normal}
+.lwc-footer p.bold-note{font-weight:bold;text-decoration:underline}
+.form-num{display:flex;justify-content:space-between;font-size:8pt;margin-top:8px;color:#444}
+
+/* ── MULTI-FORM ── */
+.form-page{margin-bottom:24px}
+.form-page-label{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.form-page-label span{font-size:13px;font-weight:600;color:var(--navy)}
+.form-page-label .device-badge{background:rgba(30,111,200,.1);color:var(--blue);font-size:12px;font-weight:700;padding:3px 10px;border-radius:4px}
+.form-page + .form-page{border-top:2px dashed var(--gray-light);padding-top:24px}
+
+/* ── PRINT ── */
+@media print {
+  .screen-header,.fill-bar,.form-page-label,.no-print{display:none!important}
+  body{background:white;padding:0}
+  .form-wrapper{max-width:100%;margin:0;padding:0}
+  .lwc-form{border:none;padding:10px 14px}
+  .form-page{margin-bottom:0;page-break-after:always}
+  .form-page:last-child{page-break-after:avoid}
+  @page{margin:.5in;size:letter portrait}
+}
+
+
+/* ── TOAST NOTIFICATION ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:white;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:500;z-index:9999;opacity:0;transition:all .3s ease;pointer-events:none;white-space:nowrap;border-left:4px solid var(--accent)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="logo">Flow<span>Right</span><small>Invoice &amp; Device Tracker</small></span>
+  <div class="topbar-right">
+    <div class="topbar-stat"><div class="val" id="hdr-total">$0</div><div class="lbl">Total Billed</div></div>
+    <div class="topbar-div"></div>
+    <div class="topbar-stat"><div class="val" id="hdr-devices">0</div><div class="lbl">Total Devices</div></div>
+    <div class="topbar-div"></div>
+    <button class="btn btn-accent" onclick="openNewInvoice()">+ New Invoice</button>
+    <span id="db-status" style="font-size:11px;font-weight:600;letter-spacing:.3px;color:rgba(255,255,255,0.4);white-space:nowrap">○ Offline mode</span>
+  </div>
+</div>
+<div class="shell">
+  <nav class="sidebar">
+    <div class="sidebar-label">Menu</div>
+    <div class="nav-item active" onclick="showView('transactions')" id="nav-transactions"><span class="icon">&#128203;</span> Transactions</div>
+    <div class="nav-item" onclick="showView('devices')" id="nav-devices"><span class="icon">&#128295;</span> Devices</div>
+    <div class="nav-item" onclick="showView('invoices')" id="nav-invoices"><span class="icon">&#129534;</span> Invoices</div>
+    <div class="nav-item" onclick="showView('overdue')" id="nav-overdue"><span class="icon">&#9888;&#65039;</span> Overdue <span class="nav-badge" id="overdue-badge" style="display:none">0</span></div>
+    <div class="nav-item" onclick="showView('summary')" id="nav-summary"><span class="icon">&#128202;</span> Summary</div>
+    <div class="sidebar-label">Reports</div>
+    <div class="nav-item" onclick="showView('lwcreport')" id="nav-lwcreport"><span class="icon">&#128196;</span> LWC Report</div>
+  </nav>
+  <main class="main">
+    <div class="view active" id="view-transactions">
+      <div class="page-header">
+        <div><div class="page-title">Transaction Sheet</div><div class="page-sub">All invoices and payment records</div></div>
+        <div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="exportCSV()">&#11015; Export CSV</button><button class="btn btn-accent" onclick="openNewInvoice()">+ New Invoice</button></div>
+      </div>
+      <div class="summary-row">
+        <div class="sum-card blue"><div class="sum-label">Total Invoiced</div><div class="sum-value" id="s-total">$0</div><div class="sum-sub" id="s-count">0 invoices</div></div>
+        <div class="sum-card green"><div class="sum-label">Total Collected</div><div class="sum-value" id="s-paid">$0</div><div class="sum-sub" id="s-pct">0%</div></div>
+        <div class="sum-card amber"><div class="sum-label">Outstanding</div><div class="sum-value" id="s-out">$0</div><div class="sum-sub" id="s-upc">0 unpaid</div></div>
+        <div class="sum-card red"><div class="sum-label">Overdue 60+ Days</div><div class="sum-value" id="s-ov">$0</div><div class="sum-sub" id="s-ovc">0 invoices</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="search-box"><span>&#128269;</span><input type="text" placeholder="Search customer or invoice #..." id="tx-search" oninput="renderTx()"></div>
+          <select class="filter-select" id="tx-filter" onchange="renderTx()"><option value="">All Statuses</option><option value="paid">Paid</option><option value="unpaid">Unpaid</option><option value="partial">Partial</option><option value="overdue">Overdue</option></select>
+          <select class="filter-select" id="tx-sort" onchange="renderTx()"><option value="inv-desc">Invoice # &#8595;</option><option value="inv-asc">Invoice # &#8593;</option><option value="date-desc">Date &#8595;</option><option value="amount-desc">Amount &#8595;</option></select>
+        </div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Invoice #</th><th>Date Billed</th><th>Customer</th><th>Devices</th><th>Amount</th><th>Paid</th><th>Status</th><th>Actions</th></tr></thead><tbody id="tx-body"></tbody></table></div>
+        <div class="table-footer"><span id="tx-footer">Showing 0 records</span></div>
+      </div>
+    </div>
+    <div class="view" id="view-devices">
+      <div class="page-header">
+        <div><div class="page-title">Customer Devices</div><div class="page-sub">All registered locations and backflow device counts</div></div>
+      </div>
+      <div class="summary-row" style="grid-template-columns:repeat(3,1fr)">
+        <div class="sum-card blue"><div class="sum-label">Total Locations</div><div class="sum-value" id="d-loc">0</div><div class="sum-sub">registered sites</div></div>
+        <div class="sum-card amber"><div class="sum-label">Total Devices</div><div class="sum-value" id="d-dev">0</div><div class="sum-sub">backflow units tracked</div></div>
+        <div class="sum-card green"><div class="sum-label">Unique Companies</div><div class="sum-value" id="d-co">0</div><div class="sum-sub">across all locations</div></div>
+      </div>
+      <div class="table-toolbar" style="background:var(--white);border:1px solid var(--gray-light);border-radius:10px 10px 0 0;border-bottom:none">
+        <div class="search-box" style="max-width:380px">
+          <span>&#128269;</span>
+          <input type="text" placeholder="Search company, city, address, contact..." id="dev-search" oninput="renderDevices()" autocomplete="off">
+          <button onclick="clearDevSearch()" id="dev-search-clear" style="display:none;background:none;border:none;cursor:pointer;color:var(--gray);font-size:16px;padding:0 2px" title="Clear search">&#10005;</button>
+        </div>
+        <select class="filter-select" id="dev-city" onchange="renderDevices()"><option value="">All Cities</option></select>
+        <select class="filter-select" id="dev-view" onchange="renderDevices()"><option value="grid">Card View</option><option value="table">Table View</option></select>
+        <span id="dev-search-count" style="font-size:12px;color:var(--text-muted);margin-left:auto"></span>
+        <button class="btn btn-accent" onclick="openAddCust()" style="white-space:nowrap">+ Add Customer</button>
+      </div>
+      <div id="dev-out"></div>
+    </div>
+    <div class="view" id="view-invoices">
+      <div class="page-header"><div><div class="page-title">Invoices</div><div class="page-sub">View and print individual invoices</div></div><button class="btn btn-accent" onclick="openNewInvoice()">+ New Invoice</button></div>
+      <div class="table-card">
+        <div class="table-toolbar"><div class="search-box"><span>&#128269;</span><input type="text" placeholder="Search..." id="inv-search" oninput="renderInvList()"></div></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Invoice #</th><th>Date</th><th>Customer</th><th>Water Purveyor</th><th>Devices</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead><tbody id="inv-body"></tbody></table></div>
+        <div class="table-footer"><span id="inv-footer">Showing 0</span></div>
+      </div>
+    </div>
+    <div class="view" id="view-overdue">
+      <div class="page-header"><div><div class="page-title">Overdue Invoices</div><div class="page-sub">Invoices past 60 or 90 days</div></div></div>
+      <div id="ov-out"></div>
+    </div>
+    <div class="view" id="view-summary">
+      <div class="page-header"><div><div class="page-title">Summary Report</div><div class="page-sub">Revenue breakdown and collection stats</div></div></div>
+      <div class="summary-row" id="sum-cards"></div>
+      <div class="table-card" style="margin-top:0"><div style="padding:14px 20px;border-bottom:1px solid var(--gray-light);font-weight:600;font-size:14px;color:var(--navy)">Revenue by Customer (Top 10)</div><div style="overflow-x:auto"><table><thead><tr><th>Customer</th><th>Invoices</th><th>Total Billed</th><th>Total Paid</th><th>Balance</th></tr></thead><tbody id="sum-body"></tbody></table></div></div>
+    </div>
+  
+    <!-- LWC REPORT VIEW -->
+    <div class="view" id="view-lwcreport">
+      <div class="page-header">
+        <div>
+          <div class="page-title">LWC Test Report</div>
+          <div class="page-sub">Louisville Water Company FM 266-114 — auto-filled from device records</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-ghost" onclick="openStandalone()" title="Open as standalone page in new tab">&#128279; Open Standalone</button>
+          <button class="btn btn-accent" onclick="window.print()">&#128424; Print / Save PDF</button>
+        </div>
+      </div>
+
+      <div class="report-fill-bar">
+        <label>Customer</label>
+        <select class="fill-select" id="r-customer" onchange="onReportCustChange()">
+          <option value="">— Select customer —</option>
+        </select>
+        <label>Device</label>
+        <select class="fill-select" id="r-device" onchange="renderReport()">
+          <option value="all">All devices (one form each)</option>
+        </select>
+        <label>Test Date</label>
+        <input type="date" class="fill-select" id="r-date" style="min-width:150px" oninput="renderReport()">
+        <span id="r-form-count" style="font-size:12px;color:var(--text-muted);margin-left:auto"></span>
+      </div>
+
+      <div id="report-output">
+        <div class="report-empty">
+          <div class="icon">&#128196;</div>
+          <h3>Select a customer above</h3>
+          <p>The LWC Backflow Test Report will auto-fill from your device records</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- INVOICE MODAL -->
+<div class="modal-overlay" id="inv-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="inv-modal-title">New Invoice</div><button class="modal-close" onclick="closeModal('inv-modal')">&#10005;</button></div>
+    <div class="modal-body">
+      <div class="cust-picker">
+        <div class="cust-picker-label">&#128269; Select Existing Customer (auto-fills fields below)</div>
+        <div class="cust-picker-search"><span>&#127970;</span><input type="text" placeholder="Search customers..." id="picker-q" oninput="renderPicker()"></div>
+        <div class="cust-picker-list" id="picker-list"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-section-title">Invoice Details</div>
+        <div class="form-group"><label>Invoice #</label><input type="text" id="f-num" placeholder="Auto-generated" readonly style="background:var(--offwhite)"></div>
+        <div class="form-group"><label>Date Billed</label><input type="date" id="f-date"></div>
+        <div class="form-group full"><label>Customer / Property Name</label><input type="text" id="f-cust" placeholder="e.g. Heine Bros Coffee"></div>
+        <div class="form-group"><label>Property Address</label><input type="text" id="f-addr" placeholder="123 Main St"></div>
+        <div class="form-group"><label>City</label><input type="text" id="f-city" placeholder="Louisville"></div>
+        <div class="form-group"><label>Contact Name</label><input type="text" id="f-contact" placeholder="Jane Smith"></div>
+        <div class="form-group"><label>Contact Phone</label><input type="text" id="f-phone" placeholder="(502) 555-0000"></div>
+        <div class="form-group"><label>Water Purveyor</label><select id="f-purv"><option value="">Select...</option><option>Louisville Water Company</option><option>KY-American Water Company</option><option>IN-American Water Company</option><option>Bardstown Water Company</option><option>Franklin, KY</option><option>Other</option></select></div>
+        <div class="form-group"><label>Billing Type</label><select id="f-bill"><option value="direct">Direct to Customer</option><option value="3rd">3rd Party</option></select></div>
+        <div class="form-group"><label>PO # / WO #</label><input type="text" id="f-po" placeholder="Optional"></div>
+        <div class="form-group"><label>Backflow Devices at Site</label><input type="number" id="f-devs" min="0" placeholder="0"></div>
+        <div class="form-section-title">Line Items</div>
+      </div>
+      <table class="li-table">
+        <thead><tr><th style="width:42%">Description</th><th style="width:13%">Qty</th><th style="width:20%">Unit Price</th><th style="width:15%">Total</th><th style="width:10%"></th></tr></thead>
+        <tbody id="li-body"></tbody>
+      </table>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addLI()">+ Add Line Item</button>
+      <div class="inv-totals">
+        <div class="total-row"><span class="lbl">Subtotal</span><span class="val" id="sub-val">$0.00</span></div>
+        <div class="total-row"><span class="lbl">Tax (0%)</span><span class="val">$0.00</span></div>
+        <div class="total-row grand"><span class="lbl">Total Due</span><span class="val" id="grand-val">$0.00</span></div>
+      </div>
+      <div class="form-grid" style="margin-top:20px">
+        <div class="form-section-title">Payment</div>
+        <div class="form-group"><label>Amount Paid</label><input type="number" id="f-paid" placeholder="0.00" min="0" step="0.01" oninput="updateTotals()"></div>
+        <div class="form-group"><label>Notes</label><input type="text" id="f-notes" placeholder="Optional notes"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('inv-modal')">Cancel</button><button class="btn btn-primary" onclick="saveInv()">&#128190; Save Invoice</button></div>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="modal-overlay" id="prev-modal">
+  <div class="modal" style="max-width:820px">
+    <div class="modal-header"><div class="modal-title">Invoice Preview</div><button class="modal-close" onclick="closeModal('prev-modal')">&#10005;</button></div>
+    <div class="modal-body"><div class="inv-preview" id="prev-content"></div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('prev-modal')">Close</button><button class="btn btn-primary" onclick="window.print()">&#128424; Print / PDF</button></div>
+  </div>
+</div>
+
+<!-- PAY MODAL -->
+<div class="modal-overlay" id="pay-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title">Record Payment</div><button class="modal-close" onclick="closeModal('pay-modal')">&#10005;</button></div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:14px"><label>Invoice</label><input type="text" id="pay-inv" disabled style="background:var(--offwhite)"></div>
+      <div class="form-group" style="margin-bottom:14px"><label>Amount Due</label><input type="text" id="pay-due" disabled style="background:var(--offwhite)"></div>
+      <div class="form-group"><label>Amount Paid</label><input type="number" id="pay-amt" placeholder="0.00" min="0" step="0.01"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('pay-modal')">Cancel</button><button class="btn btn-primary" onclick="confirmPay()">&#9989; Record Payment</button></div>
+  </div>
+</div>
+
+<!-- CUSTOMER MODAL -->
+<div class="modal-overlay" id="cust-modal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-header"><div class="modal-title" id="cust-modal-title">Add Customer Location</div><button class="modal-close" onclick="closeModal('cust-modal')">&#10005;</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Company Name</label><input type="text" id="c-co" placeholder="Heine Bros Coffee"></div>
+        <div class="form-group full"><label>Location / Property Name</label><input type="text" id="c-name" placeholder="Daisy Lane location"></div>
+        <div class="form-group full"><label>Address</label><input type="text" id="c-addr" placeholder="414 Daisy Lane"></div>
+        <div class="form-group"><label>City</label><input type="text" id="c-city" placeholder="New Albany"></div>
+        <div class="form-group"><label>Contact Name</label><input type="text" id="c-contact" placeholder=""></div>
+        <div class="form-group"><label>Telephone</label><input type="text" id="c-phone" placeholder="812-555-0000"></div>
+        <div class="form-group"><label>Backflow Devices</label><input type="number" id="c-devs" min="0" placeholder="1"></div>
+        <div class="form-group"><label>Water Purveyor</label><select id="c-purv"><option value="">Select...</option><option>Louisville Water Company</option><option>KY-American Water Company</option><option>IN-American Water Company</option><option>Bardstown Water Company</option><option>Franklin, KY</option><option>Other</option></select></div>
+        <div class="form-group"><label>Billing Type</label><select id="c-bill"><option value="direct">Direct to Customer</option><option value="3rd">3rd Party</option></select></div>
+        <div class="form-group"><label>Email</label><input type="email" id="c-email" placeholder="billing@company.com"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('cust-modal')">Cancel</button><button class="btn btn-primary" onclick="saveCust()">&#128190; Save</button></div>
+  </div>
+</div>
+
+<script>
+
+// ════════════════════════════════════════════════════════════
+//  GOOGLE SHEETS CONFIG
+//  1. Make a copy of the FlowRight template sheet (link in README)
+//  2. In the sheet: Extensions → Apps Script → Deploy → Web App
+//     Execute as: Me | Who has access: Anyone
+//  3. Paste the Web App URL below
+//  4. Paste your Google Sheet ID (from the URL)
+// ════════════════════════════════════════════════════════════
+const GS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwx-xQO9oVyJBOjpM4eivry-es13wvuM8Td-ponIvoqzGr7_6LheF4Lxn-n8Bnmtb8/exec';
+const GS_SHEET_ID   = '12hMU2YETMaf5wHvqnRQuF3yHq4ztTLW447-hUvykAjI';
+
+const USE_DB = !!(GS_WEBAPP_URL && GS_SHEET_ID);
+
+// ── Debug: log connection status on load ──────────────────────
+console.log('USE_DB:', USE_DB);
+console.log('GS_WEBAPP_URL:', GS_WEBAPP_URL);
+console.log('GS_SHEET_ID:', GS_SHEET_ID);
+
+// ── Sheets API helper (all calls go through Apps Script Web App) ──
+const db = {
+  async call(action, payload = {}) {
+    if (!USE_DB) return null;
+    try {
+      if (action === 'getSheet' || action === 'ping') {
+        // Use JSONP for GET requests — bypasses CORS completely
+        return await jsonp(GS_WEBAPP_URL, {
+          action,
+          sheet: payload.sheet || '',
+          sheetId: GS_SHEET_ID
+        });
+      } else {
+        // POST for mutations
+        payload.action  = action;
+        payload.sheetId = GS_SHEET_ID;
+        const r = await fetch(GS_WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload),
+          redirect: 'follow'
+        });
+        const text = await r.text();
+        return JSON.parse(text);
+      }
+    } catch(e) { console.error('GS call failed:', e); return null; }
+  },
+  getSheet: (name)          => db.call('getSheet', { sheet: name }),
+  appendRow: (sheet, row)   => db.call('appendRow', { sheet, row }),
+  updateRow: (sheet, id, row) => db.call('updateRow', { sheet, id, row }),
+  deleteRow: (sheet, id)    => db.call('deleteRow', { sheet, id }),
+};
+
+// ── Row ↔ JS object mappers ──────────────────────────────────
+// Each sheet has a header row; rows come back as objects keyed by header.
+
+function rowToCustomer(r) {
+  return { id: r.id, company: r.company||'', name: r.name||'', address: r.address||'',
+    city: r.city||'', zip: r.zip||'', contact: r.contact||'', phone: r.phone||'',
+    email: r.email||'', purveyor: r.purveyor||'', billing: r.billing_type||'direct',
+    lwcAcct: r.lwc_acct||'', devices: parseInt(r.device_count)||0 };
+}
+function customerToRow(c) {
+  return { id: c.id, company: c.company, name: c.name, address: c.address||'',
+    city: c.city||'', zip: c.zip||'', contact: c.contact||'', phone: c.phone||'',
+    email: c.email||'', purveyor: c.purveyor||'', billing_type: c.billing||'direct',
+    lwc_acct: c.lwcAcct||'', device_count: c.devices||0 };
+}
+function rowToDevice(r) {
+  return { id: r.id, custId: r.customer_id, name: r.name||'', serial: r.serial||'',
+    type: r.type||'', typeShort: r.type_short||'', mfr: r.manufacturer||'',
+    model: r.model||'', size: r.size||'', loc: r.location||'',
+    year: r.install_year||null, meter: r.meter||'', bypass: r.is_bypass==='TRUE',
+    serviceType: r.service_type||'Domestic', tested: r.last_tested||'',
+    result: r.last_result||'', notes: r.last_notes||'', mainPsi: r.main_psi||'',
+    prvOpen: r.prv_open||'', cv1Leaked: r.cv1_leaked==='TRUE',
+    cv1Closed: r.cv1_closed==='TRUE', cv1Psi: r.cv1_psi||'',
+    cv2Leaked: r.cv2_leaked==='TRUE', cv2Closed: r.cv2_closed==='TRUE', cv2Psi: r.cv2_psi||'' };
+}
+function deviceToRow(d, custId) {
+  return { id: d.id||'', customer_id: custId||d.custId, name: d.name||'',
+    serial: d.serial||'', type: d.type||'',
+    type_short: d.typeShort||(d.type||'').split(' ')[0]||'',
+    manufacturer: d.mfr||'', model: d.model||'', size: d.size||'',
+    location: d.loc||'', install_year: d.year||'', meter: d.meter||'',
+    is_bypass: d.bypass||false, service_type: d.serviceType||'Domestic',
+    last_tested: d.tested||'', last_result: d.result||'', last_notes: d.notes||'',
+    main_psi: d.mainPsi||'', prv_open: d.prvOpen||'',
+    cv1_leaked: d.cv1Leaked||false, cv1_closed: d.cv1Closed||false, cv1_psi: d.cv1Psi||'',
+    cv2_leaked: d.cv2Leaked||false, cv2_closed: d.cv2Closed||false, cv2_psi: d.cv2Psi||'' };
+}
+function rowToInvoice(r, allLineItems) {
+  const items = allLineItems.filter(li => li.invoice_id === r.id).map(li => ({
+    desc: li.description, qty: parseFloat(li.quantity)||1, price: parseFloat(li.unit_price)||0
+  }));
+  return { id: r.id, custId: r.customer_id||null, customer: r.customer_name||'',
+    date: r.date_billed||'', address: r.address||'', city: r.city||'',
+    contact: r.contact||'', phone: r.phone||'', purveyor: r.purveyor||'',
+    billing: r.billing_type||'direct', po: r.po_number||'',
+    devices: parseInt(r.device_count)||0, total: parseFloat(r.total)||0,
+    paid: parseFloat(r.amount_paid)||0, notes: r.notes||'', items };
+}
+function invoiceToRow(inv) {
+  return { id: inv.id, customer_id: inv.custId||'', customer_name: inv.customer,
+    date_billed: inv.date, address: inv.address||'', city: inv.city||'',
+    contact: inv.contact||'', phone: inv.phone||'', purveyor: inv.purveyor||'',
+    billing_type: inv.billing||'direct', po_number: inv.po||'',
+    device_count: inv.devices||0, total: inv.total, amount_paid: inv.paid||0,
+    notes: inv.notes||'' };
+}
+
+
+// ── JSONP helper — only way to reliably call Apps Script cross-origin ──
+function jsonp(url, params) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'jsonp_cb_' + Date.now();
+    const timeout = setTimeout(() => {
+      delete window[cbName];
+      document.head.removeChild(script);
+      reject(new Error('JSONP timeout'));
+    }, 10000);
+    window[cbName] = function(data) {
+      clearTimeout(timeout);
+      delete window[cbName];
+      document.head.removeChild(script);
+      resolve(data);
+    };
+    const qs = Object.entries({ ...params, callback: cbName })
+      .map(([k,v]) => k + '=' + encodeURIComponent(v)).join('&');
+    const script = document.createElement('script');
+    script.src = url + '?' + qs;
+    script.onerror = () => { clearTimeout(timeout); reject(new Error('JSONP error')); };
+    document.head.appendChild(script);
+  });
+}
+
+// ── LOAD ALL DATA FROM SHEETS ─────────────────────────────────
+async function loadAllData() {
+  console.log('loadAllData called, USE_DB=', USE_DB);
+  if (!USE_DB) { showDbStatus('offline'); return; }
+  // Mark as connected - seed data is shown, all saves go to Google Sheets
+  showDbStatus('connected');
+  renderTx(); updateHdr(); updateOvBadge();
+}
+
+// ── DB SAVE/DELETE WRAPPERS ───────────────────────────────────
+async function dbSaveCustomer(data, existingId) {
+  if (!USE_DB) return existingId||'c'+Date.now();
+  const row = customerToRow({ ...data, id: existingId||('c'+Date.now()) });
+  if (existingId) { await db.updateRow('customers', existingId, row); return existingId; }
+  else { await db.appendRow('customers', row); return row.id; }
+}
+async function dbDeleteCustomer(id) { if (USE_DB) await db.deleteRow('customers', id); }
+
+async function dbSaveDevice(data, custId, existingId) {
+  if (!USE_DB) return existingId||'dv'+Date.now();
+  const id = existingId||('dv'+Date.now());
+  const row = deviceToRow({ ...data, id }, custId);
+  if (existingId) { await db.updateRow('devices', existingId, row); return existingId; }
+  else { await db.appendRow('devices', row); return id; }
+}
+async function dbDeleteDevice(id) { if (USE_DB) await db.deleteRow('devices', id); }
+
+async function dbSaveInvoice(inv, isEdit) {
+  if (!USE_DB) return;
+  const row = invoiceToRow(inv);
+  if (isEdit) {
+    await db.updateRow('invoices', inv.id, row);
+    await db.call('deleteByField', { sheet: 'line_items', field: 'invoice_id', value: inv.id });
+  } else {
+    await db.appendRow('invoices', row);
+    await db.updateRow('invoice_sequence', 'ONLY', { next_number: nextNum });
+  }
+  for (let i = 0; i < inv.items.length; i++) {
+    await db.appendRow('line_items', {
+      id: 'li'+Date.now()+i, invoice_id: inv.id,
+      description: inv.items[i].desc, quantity: inv.items[i].qty,
+      unit_price: inv.items[i].price, sort_order: i
+    });
+  }
+}
+async function dbDeleteInvoice(id) {
+  if (!USE_DB) return;
+  await db.deleteRow('invoices', id);
+  await db.call('deleteByField', { sheet: 'line_items', field: 'invoice_id', value: id });
+}
+async function dbUpdatePayment(id, paid) {
+  if (!USE_DB) return;
+  const inv = invoices.find(i => i.id === id); if (!inv) return;
+  await db.updateRow('invoices', id, invoiceToRow({ ...inv, paid }));
+}
+
+// ── DB STATUS BADGE ───────────────────────────────────────────
+function showDbStatus(state) {
+  const el = document.getElementById('db-status'); if (!el) return;
+  const cfg = { loading:{color:'#f5a623',text:'⟳ Connecting…'}, connected:{color:'#1a9e6e',text:'● Live (Google Sheets)'},
+    offline:{color:'#8a9bb5',text:'○ Offline mode'}, error:{color:'#d94040',text:'✕ Connection error'} };
+  const c = cfg[state]||cfg.offline; el.style.color=c.color; el.textContent=c.text;
+}
+
+const SVCS=['Labor and Equipment to Certify and Inspect Backflow Device(s)','Labor and Equipment to Rebuild and Recertify Backflow Device(s)','Labor and Equipment to Repair and Recertify Backflow Device(s)','Labor and Equipment to Calibrate and Replace Expansion Tank','Test Cock Replacement','ProPress Equipment Fee','Water Pump Fee','Parts (Cost x2)','Other'];
+let invoices=[],customers=[],lineItems=[],editInvId=null,editCustId=null,payId=null,selCustId=null,nextNum=13083;
+const fmt=n=>'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtS=n=>{const v=Number(n||0);return v>=1000?'$'+(v/1000).toFixed(1)+'k':fmt(v);};
+const dSince=d=>Math.floor((new Date()-new Date(d))/86400000);
+function tStr(o=0){const d=new Date();d.setDate(d.getDate()+o);return d.toISOString().split('T')[0];}
+function gStatus(inv){if(inv.paid>=inv.total)return'paid';if(inv.paid>0)return'partial';if(dSince(inv.date)>=60)return'overdue';return'unpaid';}
+function sBadge(inv){const s=gStatus(inv);const cls={paid:'badge-paid',unpaid:'badge-unpaid',partial:'badge-partial',overdue:'badge-overdue'};const lbl={paid:'&#10003; Paid',unpaid:'Unpaid',partial:'Partial',overdue:'&#9888; Overdue'};return`<span class="badge ${cls[s]}">${lbl[s]}</span>`;}
+function dPill(n){const c=parseInt(n)||0;return`<span class="dev-pill${c===0?' zero':''}">${c===0?'&mdash;':'&#128295; '+c}</span>`;}
+
+customers=[
+  {id:'c1',company:'Heine Bros',name:'Heine Bros - Daisy Lane',address:'414 Daisy Lane',city:'New Albany',contact:'',phone:'',devices:1,purveyor:'IN-American Water Company',billing:'direct',email:''},
+  {id:'c2',company:'Heine Bros',name:'Heine Bros - State Street',address:'State Street',city:'New Albany',contact:'',phone:'',devices:1,purveyor:'IN-American Water Company',billing:'direct',email:''},
+  {id:'c3',company:'White Castle',name:'White Castle - Spring St.',address:'1701 E. Spring St.',city:'New Albany',contact:'Tim Clauw',phone:'812-945-7864',devices:2,purveyor:'IN-American Water Company',billing:'3rd',email:''},
+  {id:'c4',company:'White Castle',name:'White Castle - 10th Street',address:'1608 E 10th Street',city:'Jeffersonville',contact:'Tim Clauw',phone:'812-282-2692',devices:2,purveyor:'IN-American Water Company',billing:'3rd',email:''},
+  {id:'c5',company:'White Castle',name:'White Castle - Hwy 31 E.',address:'4023 Hwy 31 E.',city:'Clarksville',contact:'Tim Clauw',phone:'502-797-3691',devices:1,purveyor:'IN-American Water Company',billing:'3rd',email:''},
+  {id:'c6',company:'Olive Garden',name:'Olive Garden - Veterans Pkwy',address:'1230 Veterans Parkway',city:'Clarksville',contact:'Patrick',phone:'812-218-8304',devices:4,purveyor:'IN-American Water Company',billing:'direct',email:''},
+  {id:'c7',company:'Clarksville Parks & Recreation',name:'Clarksville Parks & Recreation',address:'2000 Broadway',city:'Clarksville',contact:'Lou',phone:'',devices:5,purveyor:'IN-American Water Company',billing:'direct',email:''},
+  {id:'c8',company:'Coin Laundry / Laundry Connection',name:'Laundry Connection - 10th St.',address:'1506 E. 10th Street',city:'Jeffersonville',contact:'Tom',phone:'',devices:1,purveyor:'IN-American Water Company',billing:'direct',email:''},
+  {id:'c9',company:"Dunkin' Donuts",name:"Dunkin' Donuts (multiple locations)",address:'Fern Valley / Shively / Middletown / New Albany',city:'Louisville',contact:'',phone:'',devices:4,purveyor:'Louisville Water Company',billing:'3rd',email:''},
+  {id:'c10',company:'Speedway',name:'Speedway #9708',address:'',city:'Louisville',contact:'',phone:'',devices:1,purveyor:'Louisville Water Company',billing:'3rd',email:''},
+  {id:'c11',company:'Speedway',name:'Speedway #9377',address:'',city:'Louisville',contact:'',phone:'',devices:1,purveyor:'Louisville Water Company',billing:'3rd',email:''},
+  {id:'c12',company:'Baymont Inn',name:'Baymont Inn (Georgetown)',address:'',city:'Georgetown',contact:'',phone:'',devices:5,purveyor:'KY-American Water Company',billing:'direct',email:''},
+  {id:'c13',company:'Avantor Performance Materials',name:'Avantor Performance Materials',address:'',city:'Louisville',contact:'',phone:'',devices:2,purveyor:'Louisville Water Company',billing:'3rd',email:''},
+  {id:'c14',company:'FMC Morehead 1793',name:'FMC Morehead 1793 (CINTAS)',address:'',city:'Morehead',contact:'',phone:'',devices:4,purveyor:'KY-American Water Company',billing:'3rd',email:''},
+  {id:'c15',company:'Southern Indiana Rehabilitation Hospital',name:'Southern Indiana Rehabilitation Hospital',address:'',city:'New Albany',contact:'',phone:'',devices:1,purveyor:'IN-American Water Company',billing:'direct',email:''},
+  {id:'c16',company:'Wolf Lake Property',name:'Wolf Lake Property',address:'',city:'Louisville',contact:'',phone:'',devices:1,purveyor:'Louisville Water Company',billing:'direct',email:''},
+  {id:'c17',company:'Animal Hospital of Millersburg',name:'Animal Hospital of Millersburg',address:'',city:'Millersburg',contact:'',phone:'',devices:1,purveyor:'KY-American Water Company',billing:'direct',email:''},
+];
+invoices=[
+  {id:'13070',date:'2022-02-05',custId:'c16',customer:'Wolf Lake Property',address:'',city:'Louisville',contact:'',phone:'',purveyor:'Louisville Water Company',billing:'direct',po:'',devices:1,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:1,price:125}],paid:125,notes:'',total:125},
+  {id:'13071',date:'2022-02-09',custId:'c17',customer:'Animal Hospital of Millersburg',address:'',city:'Millersburg',contact:'',phone:'',purveyor:'KY-American Water Company',billing:'direct',po:'',devices:1,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:1,price:150}],paid:150,notes:'',total:150},
+  {id:'13072',date:'2022-02-09',custId:'c10',customer:'Speedway #9708',address:'',city:'Louisville',contact:'',phone:'',purveyor:'Louisville Water Company',billing:'3rd',po:'',devices:1,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:1,price:100}],paid:100,notes:'',total:100},
+  {id:'13073',date:'2022-02-09',custId:'c11',customer:'Speedway #9377',address:'',city:'Louisville',contact:'',phone:'',purveyor:'Louisville Water Company',billing:'3rd',po:'',devices:1,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:1,price:80}],paid:80,notes:'',total:80},
+  {id:'13074',date:'2022-02-09',custId:'c12',customer:'Baymont Inn (Georgetown)',address:'',city:'Georgetown',contact:'',phone:'',purveyor:'KY-American Water Company',billing:'direct',po:'',devices:5,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:5,price:125}],paid:625,notes:'',total:625},
+  {id:'13075',date:'2022-02-09',custId:'c9',customer:"Dunkin' Donuts (multiple locations)",address:'',city:'Louisville',contact:'',phone:'',purveyor:'Louisville Water Company',billing:'3rd',po:'',devices:4,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:4,price:105}],paid:420,notes:'',total:420},
+  {id:'13076',date:'2022-02-09',custId:'c15',customer:'Southern Indiana Rehabilitation Hospital',address:'',city:'New Albany',contact:'',phone:'',purveyor:'IN-American Water Company',billing:'direct',po:'',devices:1,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:1,price:649}],paid:649,notes:'',total:649},
+  {id:'13077',date:'2022-02-09',custId:'c13',customer:'Avantor Performance Materials',address:'',city:'Louisville',contact:'',phone:'',purveyor:'Louisville Water Company',billing:'3rd',po:'',devices:2,items:[{desc:'Labor and Equipment to Rebuild and Recertify Backflow Device(s)',qty:2,price:500}],paid:1000,notes:'',total:1000},
+  {id:'13078',date:'2022-02-09',custId:'c14',customer:'FMC Morehead 1793 (CINTAS)',address:'',city:'Morehead',contact:'',phone:'',purveyor:'KY-American Water Company',billing:'3rd',po:'CINTAS-882',devices:4,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:4,price:80}],paid:320,notes:'',total:320},
+  {id:'13079',date:'2022-02-09',custId:'c14',customer:'FMC Morehead 1793',address:'',city:'Morehead',contact:'',phone:'',purveyor:'KY-American Water Company',billing:'direct',po:'',devices:1,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:1,price:220.5}],paid:220.5,notes:'',total:220.5},
+  {id:'13080',date:tStr(-15),custId:'c1',customer:'Heine Bros - Daisy Lane',address:'414 Daisy Lane',city:'New Albany',contact:'',phone:'',purveyor:'IN-American Water Company',billing:'direct',po:'',devices:1,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:2,price:110}],paid:0,notes:'',total:220},
+  {id:'13081',date:tStr(-70),custId:'c3',customer:'White Castle - Spring St.',address:'1701 E. Spring St.',city:'New Albany',contact:'Tim Clauw',phone:'812-945-7864',purveyor:'IN-American Water Company',billing:'3rd',po:'WC-2024-11',devices:2,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:2,price:100},{desc:'Test Cock Replacement',qty:2,price:35}],paid:0,notes:'60-day reminder sent',total:270},
+  {id:'13082',date:tStr(-95),custId:'c6',customer:'Olive Garden - Veterans Pkwy',address:'1230 Veterans Pkwy',city:'Clarksville',contact:'Patrick',phone:'812-218-8304',purveyor:'IN-American Water Company',billing:'direct',po:'',devices:4,items:[{desc:'Labor and Equipment to Certify and Inspect Backflow Device(s)',qty:4,price:110}],paid:220,notes:'Partial payment received',total:440},
+];
+
+function showView(n){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('view-'+n).classList.add('active');
+  document.getElementById('nav-'+n).classList.add('active');
+  if(n==='transactions')renderTx();
+  if(n==='devices')renderDevices();
+  if(n==='invoices')renderInvList();
+  if(n==='overdue')renderOverdue();
+  if(n==='summary')renderSummary();
+  if(n==='lwcreport'){initReportView();}
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function renderTx(){
+  const q=document.getElementById('tx-search').value.toLowerCase();
+  const f=document.getElementById('tx-filter').value;
+  const s=document.getElementById('tx-sort').value;
+  let list=invoices.filter(i=>(i.customer.toLowerCase().includes(q)||i.id.includes(q))&&(!f||gStatus(i)===f));
+  if(s==='inv-desc')list.sort((a,b)=>Number(b.id)-Number(a.id));
+  else if(s==='inv-asc')list.sort((a,b)=>Number(a.id)-Number(b.id));
+  else if(s==='date-desc')list.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  else if(s==='amount-desc')list.sort((a,b)=>b.total-a.total);
+  const body=document.getElementById('tx-body');
+  if(!list.length){body.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="icon">&#128269;</div><h3>No results</h3><p>Try a different filter.</p></div></td></tr>';return;}
+  body.innerHTML=list.map(inv=>`<tr>
+    <td><span class="inv-num">#${inv.id}</span></td>
+    <td>${new Date(inv.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+    <td style="max-width:200px">${inv.customer}</td>
+    <td>${dPill(inv.devices)}</td>
+    <td class="amount">${fmt(inv.total)}</td>
+    <td class="amount" style="color:var(--green)">${fmt(inv.paid)}</td>
+    <td>${sBadge(inv)}</td>
+    <td><div class="row-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openPrev('${inv.id}')">&#128065; View</button>
+      <button class="btn btn-ghost btn-sm" onclick="openPay('${inv.id}')">&#128179; Pay</button>
+      <button class="btn btn-ghost btn-sm" onclick="openEditInv('${inv.id}')">&#9999;&#65039;</button>
+      <button class="btn btn-danger btn-sm" onclick="delInv('${inv.id}')">&#128465;</button>
+    </div></td>
+  </tr>`).join('');
+  document.getElementById('tx-footer').textContent=`Showing ${list.length} of ${invoices.length} records`;
+  updateSumCards(); updateHdr(); updateOvBadge();
+}
+function updateSumCards(){
+  const tot=invoices.reduce((s,i)=>s+i.total,0);
+  const paid=invoices.reduce((s,i)=>s+i.paid,0);
+  const ov=invoices.filter(i=>gStatus(i)==='overdue').reduce((s,i)=>s+(i.total-i.paid),0);
+  const ovc=invoices.filter(i=>gStatus(i)==='overdue').length;
+  const upc=invoices.filter(i=>gStatus(i)!=='paid').length;
+  const pct=tot>0?Math.round(paid/tot*100):0;
+  document.getElementById('s-total').textContent=fmtS(tot);
+  document.getElementById('s-paid').textContent=fmtS(paid);
+  document.getElementById('s-out').textContent=fmtS(tot-paid);
+  document.getElementById('s-ov').textContent=fmtS(ov);
+  document.getElementById('s-count').textContent=invoices.length+' invoices';
+  document.getElementById('s-pct').textContent=pct+'% collection rate';
+  document.getElementById('s-upc').textContent=upc+' unpaid';
+  document.getElementById('s-ovc').textContent=ovc+' invoices';
+}
+function updateHdr(){
+  const tot=invoices.reduce((s,i)=>s+i.total,0);
+  const devTot=customers.reduce((s,c)=>s+(parseInt(c.devices)||0),0);
+  document.getElementById('hdr-total').textContent=fmtS(tot);
+  document.getElementById('hdr-devices').textContent=devTot;
+}
+function updateOvBadge(){
+  const c=invoices.filter(i=>gStatus(i)==='overdue').length;
+  const b=document.getElementById('overdue-badge');
+  b.textContent=c;b.style.display=c?'':'none';
+}
+
+function clearDevSearch(){
+  document.getElementById('dev-search').value='';
+  document.getElementById('dev-search-clear').style.display='none';
+  renderDevices();
+}
+function highlight(text, q) {
+  if (!q) return text;
+  const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  return text.replace(re, '<mark style="background:#fff3cd;border-radius:2px;padding:0 1px">$1</mark>');
+}
+function renderDevices(){
+  const q=document.getElementById('dev-search').value.toLowerCase();
+  const cf=document.getElementById('dev-city').value;
+  const vm=document.getElementById('dev-view').value;
+  // show/hide clear button
+  const clearBtn=document.getElementById('dev-search-clear');
+  if(clearBtn) clearBtn.style.display=q?'inline':'none';
+  const cities=[...new Set(customers.map(c=>c.city).filter(Boolean))].sort();
+  const ce=document.getElementById('dev-city');
+  const cv=ce.value;
+  ce.innerHTML='<option value="">All Cities</option>'+cities.map(c=>`<option value="${c}" ${c===cv?'selected':''}>${c}</option>`).join('');
+  let list=customers.filter(c=>(c.name+c.company+c.city+c.address+c.contact).toLowerCase().includes(q)&&(!cf||c.city===cf));
+  document.getElementById('d-loc').textContent=customers.length;
+  document.getElementById('d-dev').textContent=customers.reduce((s,c)=>s+(parseInt(c.devices)||0),0);
+  document.getElementById('d-co').textContent=new Set(customers.map(c=>c.company)).size;
+  const countEl=document.getElementById('dev-search-count');
+  if(countEl){
+    if(q||cf) countEl.textContent=list.length+' of '+customers.length+' locations';
+    else countEl.textContent=customers.length+' locations';
+  }
+  const out=document.getElementById('dev-out');
+  if(!list.length){
+    out.innerHTML=`<div class="empty-state" style="margin-top:16px"><div class="icon">&#128269;</div><h3>No customers found</h3><p>Try a different search or <a href="#" onclick="clearDevSearch();return false" style="color:var(--blue)">clear the filter</a></p></div>`;
+    return;
+  }
+  if(vm==='grid'){
+    out.innerHTML=`<div class="dev-grid">${list.map(c=>devCard(c)).join('')}</div>`;
+  } else {
+    out.innerHTML=`<div class="table-card" style="border-radius:0 0 10px 10px"><div style="overflow-x:auto"><table><thead><tr><th>Company</th><th>Location</th><th>Address</th><th>City</th><th>Contact</th><th>Phone</th><th>Devices</th><th>Purveyor</th><th>Actions</th></tr></thead><tbody>${list.map(c=>`<tr>
+      <td style="font-weight:600">${c.company}</td><td>${c.name}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${c.address||'&mdash;'}</td>
+      <td>${c.city||'&mdash;'}</td><td>${c.contact||'&mdash;'}</td><td>${c.phone||'&mdash;'}</td>
+      <td>${dPill(c.devices)}</td><td style="font-size:12px;color:var(--text-muted)">${c.purveyor||'&mdash;'}</td>
+      <td><div class="row-actions">
+        <button class="btn btn-primary btn-sm" onclick="openDetail('${c.id}')">&#128295; Devices</button>
+        <button class="btn btn-green btn-sm" onclick="openNewInvFor('${c.id}')">&#129534; Invoice</button>
+        <button class="btn btn-ghost btn-sm" onclick="openEditCust('${c.id}')">&#9999;&#65039;</button>
+        <button class="btn btn-danger btn-sm" onclick="delCust('${c.id}')">&#128465;</button>
+      </div></td>
+    </tr>`).join('')}</tbody></table></div></div>`;
+  }
+}
+function devCard(c){
+  const ic=invoices.filter(i=>i.custId===c.id).length;
+  const li=invoices.filter(i=>i.custId===c.id).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+  return`<div class="dev-card">
+    <div class="dev-card-hdr"><div><div class="dev-card-name">${highlight(c.name,q)}</div><div class="dev-card-addr">${highlight((c.address?c.address+', ':'')+( c.city||''),q)}</div></div>${dPill(c.devices)}</div>
+    <div class="dev-card-body">
+      ${c.contact?`<div class="dev-card-row"><strong>Contact</strong>${c.contact}${c.phone?' &middot; '+c.phone:''}</div>`:''}
+      ${c.purveyor?`<div class="dev-card-row"><strong>Purveyor</strong>${c.purveyor}</div>`:''}
+      <div class="dev-card-row"><strong>Billing</strong>${c.billing==='3rd'?'3rd Party':'Direct'}</div>
+      <div class="dev-card-row"><strong>Invoices</strong>${ic} total${li?' &middot; last '+new Date(li.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'}):''}</div>
+    </div>
+    <div class="dev-card-actions">
+      <button class="btn btn-primary btn-sm" onclick="openDetail('${c.id}')">&#128295; View Devices</button>
+      <button class="btn btn-green btn-sm" onclick="openNewInvFor('${c.id}')">&#129534; Invoice</button>
+      <button class="btn btn-ghost btn-sm" onclick="openEditCust('${c.id}')">&#9999;&#65039;</button>
+      <button class="btn btn-danger btn-sm" onclick="delCust('${c.id}')">&#128465;</button>
+    </div>
+  </div>`;
+}
+
+function renderInvList(){
+  const q=document.getElementById('inv-search').value.toLowerCase();
+  const list=invoices.filter(i=>i.customer.toLowerCase().includes(q)||i.id.includes(q)).sort((a,b)=>Number(b.id)-Number(a.id));
+  const body=document.getElementById('inv-body');
+  if(!list.length){body.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="icon">&#129534;</div><h3>No invoices yet</h3></div></td></tr>';return;}
+  body.innerHTML=list.map(inv=>`<tr>
+    <td><span class="inv-num">#${inv.id}</span></td>
+    <td>${new Date(inv.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+    <td>${inv.customer}</td><td style="font-size:12px;color:var(--text-muted)">${inv.purveyor||'&mdash;'}</td>
+    <td>${dPill(inv.devices)}</td><td class="amount">${fmt(inv.total)}</td><td>${sBadge(inv)}</td>
+    <td><div class="row-actions">
+      <button class="btn btn-accent btn-sm" onclick="openPrev('${inv.id}')">&#128424; Print</button>
+      <button class="btn btn-ghost btn-sm" onclick="openEditInv('${inv.id}')">&#9999;&#65039; Edit</button>
+    </div></td>
+  </tr>`).join('');
+  document.getElementById('inv-footer').textContent=`Showing ${list.length} invoices`;
+}
+function renderOverdue(){
+  const o90=invoices.filter(i=>gStatus(i)==='overdue'&&dSince(i.date)>=90);
+  const o60=invoices.filter(i=>gStatus(i)==='overdue'&&dSince(i.date)>=60&&dSince(i.date)<90);
+  let html='';
+  if(!o60.length&&!o90.length)html='<div class="empty-state" style="margin-top:40px"><div class="icon">&#127881;</div><h3>No overdue invoices!</h3><p>All accounts are current.</p></div>';
+  [['90',o90,'var(--navy)'],[' 60\u201389',o60,'var(--navy-light)']].forEach(([days,list,bg])=>{
+    if(!list.length)return;
+    html+=`<div class="alert-card"><div class="alert-hdr" style="background:${bg}"><div class="alert-dot"></div><h3>${days}+ Days Past Due (${list.length})</h3></div>`;
+    html+=list.map(inv=>`<div class="alert-row">
+      <div><div style="font-size:13px;font-weight:600">${inv.customer}</div><div style="font-size:12px;color:var(--text-muted)">Invoice #${inv.id} &middot; ${new Date(inv.date+'T12:00:00').toLocaleDateString()}</div></div>
+      <div class="alert-days ${days.includes('90')?'days-90':'days-60'}">${dSince(inv.date)} days</div>
+      <div style="font-weight:700;color:${days.includes('90')?'var(--red)':'#b84400'}">${fmt(inv.total-inv.paid)} due</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-${days.includes('90')?'danger':'ghost'} btn-sm" onclick="sendRem('${inv.id}','${days.includes('90')?90:60}')">&#128231; ${days.includes('90')?'90':'60'}-Day Reminder</button>
+        <button class="btn btn-ghost btn-sm" onclick="openPay('${inv.id}')">&#128179; Pay</button>
+      </div>
+    </div>`).join('');
+    html+='</div>';
+  });
+  document.getElementById('ov-out').innerHTML=html;
+}
+function renderSummary(){
+  const tot=invoices.reduce((s,i)=>s+i.total,0);
+  const paid=invoices.reduce((s,i)=>s+i.paid,0);
+  const pct=tot>0?Math.round(paid/tot*100):0;
+  const avg=invoices.length?tot/invoices.length:0;
+  document.getElementById('sum-cards').innerHTML=`
+    <div class="sum-card blue"><div class="sum-label">Total Revenue</div><div class="sum-value">${fmtS(tot)}</div><div class="sum-sub">${invoices.length} invoices</div></div>
+    <div class="sum-card green"><div class="sum-label">Collection Rate</div><div class="sum-value">${pct}%</div><div class="sum-sub">${fmt(paid)} collected</div></div>
+    <div class="sum-card amber"><div class="sum-label">Avg Invoice</div><div class="sum-value">${fmtS(avg)}</div><div class="sum-sub">per job</div></div>
+    <div class="sum-card red"><div class="sum-label">Open Balance</div><div class="sum-value">${fmtS(tot-paid)}</div><div class="sum-sub">${invoices.filter(i=>gStatus(i)!=='paid').length} open</div></div>`;
+  const byC={};
+  invoices.forEach(inv=>{if(!byC[inv.customer])byC[inv.customer]={count:0,total:0,paid:0};byC[inv.customer].count++;byC[inv.customer].total+=inv.total;byC[inv.customer].paid+=inv.paid;});
+  document.getElementById('sum-body').innerHTML=Object.entries(byC).sort((a,b)=>b[1].total-a[1].total).slice(0,10).map(([n,d])=>`<tr><td style="font-weight:500">${n}</td><td style="color:var(--text-muted)">${d.count}</td><td class="amount">${fmt(d.total)}</td><td style="color:var(--green);font-weight:600">${fmt(d.paid)}</td><td style="color:${d.total-d.paid>0?'var(--red)':'var(--green)'};font-weight:600">${fmt(d.total-d.paid)}</td></tr>`).join('');
+}
+
+function addLI(desc='',qty=1,price=0){lineItems.push({id:Date.now()+Math.random(),desc,qty,price});renderLI();}
+function renderLI(){
+  document.getElementById('li-body').innerHTML=lineItems.map(item=>`<tr>
+    <td><select onchange="updLI('${item.id}','desc',this.value)" style="width:100%"><option value="">Select service...</option>${SVCS.map(s=>`<option value="${s}" ${item.desc===s?'selected':''}>${s}</option>`).join('')}</select>
+    ${(item.desc&&!SVCS.includes(item.desc))?`<input type="text" value="${item.desc}" onchange="updLI('${item.id}','desc',this.value)" style="margin-top:4px;width:100%" placeholder="Custom description">`:''}
+    </td>
+    <td><input type="number" min="1" value="${item.qty}" onchange="updLI('${item.id}','qty',this.value)" style="width:60px"></td>
+    <td><input type="number" min="0" step="0.01" value="${item.price||''}" placeholder="0.00" onchange="updLI('${item.id}','price',this.value)" style="width:90px"></td>
+    <td><span class="li-total">${fmt(item.qty*item.price)}</span></td>
+    <td><button class="rm-line" onclick="rmLI('${item.id}')">&#10005;</button></td>
+  </tr>`).join('');
+  updateTotals();
+}
+function updLI(id,f,v){const i=lineItems.find(x=>x.id==id);if(!i)return;i[f]=(f==='qty'||f==='price')?parseFloat(v)||0:v;renderLI();}
+function rmLI(id){lineItems=lineItems.filter(i=>i.id!=id);renderLI();}
+function updateTotals(){const sub=lineItems.reduce((s,i)=>s+i.qty*i.price,0);document.getElementById('sub-val').textContent=fmt(sub);document.getElementById('grand-val').textContent=fmt(sub);}
+
+function renderPicker(){
+  const q=document.getElementById('picker-q').value.toLowerCase();
+  const list=customers.filter(c=>(c.name+c.company+c.city).toLowerCase().includes(q)).slice(0,8);
+  document.getElementById('picker-list').innerHTML=list.map(c=>`<div class="cust-opt ${selCustId===c.id?'selected':''}" onclick="selCust('${c.id}')">
+    <div><div class="cust-opt-name">${c.name}</div><div class="cust-opt-meta"><span>${c.city||''}</span>${c.purveyor?`<span>&middot; ${c.purveyor}</span>`:''}</div></div>
+    ${dPill(c.devices)}
+  </div>`).join('');
+}
+function selCust(id){
+  selCustId=id;
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  [['f-cust',c.name],['f-addr',c.address],['f-city',c.city],['f-contact',c.contact],['f-phone',c.phone],['f-devs',c.devices]].forEach(([fid,val])=>{
+    const el=document.getElementById(fid);if(!el)return;el.value=val||'';el.classList.add('autofilled');setTimeout(()=>el.classList.remove('autofilled'),1600);
+  });
+  if(c.purveyor){const el=document.getElementById('f-purv');el.value=c.purveyor;el.classList.add('autofilled');setTimeout(()=>el.classList.remove('autofilled'),1600);}
+  if(c.billing)document.getElementById('f-bill').value=c.billing;
+  renderPicker();
+}
+
+function openNewInvoice(){
+  editInvId=null;lineItems=[];selCustId=null;
+  document.getElementById('inv-modal-title').textContent='New Invoice';
+  ['f-cust','f-addr','f-city','f-contact','f-phone','f-po','f-paid','f-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('f-num').value='#'+nextNum;
+  document.getElementById('f-date').value=tStr();
+  document.getElementById('f-purv').value='';
+  document.getElementById('f-bill').value='direct';
+  document.getElementById('f-devs').value='';
+  document.getElementById('picker-q').value='';
+  addLI('Labor and Equipment to Certify and Inspect Backflow Device(s)',1,125);
+  renderPicker();openModal('inv-modal');
+}
+function openNewInvFor(cid){openNewInvoice();selCust(cid);}
+function openEditInv(id){
+  const inv=invoices.find(i=>i.id===id);if(!inv)return;
+  editInvId=id;selCustId=inv.custId||null;
+  lineItems=inv.items.map(i=>({id:Date.now()+Math.random(),...i}));
+  document.getElementById('inv-modal-title').textContent='Edit Invoice #'+id;
+  document.getElementById('f-num').value='#'+id;
+  document.getElementById('f-date').value=inv.date;
+  document.getElementById('f-cust').value=inv.customer;
+  document.getElementById('f-addr').value=inv.address||'';
+  document.getElementById('f-city').value=inv.city||'';
+  document.getElementById('f-contact').value=inv.contact||'';
+  document.getElementById('f-phone').value=inv.phone||'';
+  document.getElementById('f-purv').value=inv.purveyor||'';
+  document.getElementById('f-bill').value=inv.billing||'direct';
+  document.getElementById('f-po').value=inv.po||'';
+  document.getElementById('f-devs').value=inv.devices||'';
+  document.getElementById('f-paid').value=inv.paid||'';
+  document.getElementById('f-notes').value=inv.notes||'';
+  document.getElementById('picker-q').value='';
+  renderLI();renderPicker();openModal('inv-modal');
+}
+function saveInv(){
+  const customer=document.getElementById('f-cust').value.trim();
+  if(!customer){alert('Please enter a customer name.');return;}
+  if(!lineItems.length){alert('Please add at least one line item.');return;}
+  const total=lineItems.reduce((s,i)=>s+i.qty*i.price,0);
+  const paid=parseFloat(document.getElementById('f-paid').value)||0;
+  const data={customer,date:document.getElementById('f-date').value,custId:selCustId||null,address:document.getElementById('f-addr').value,city:document.getElementById('f-city').value,contact:document.getElementById('f-contact').value,phone:document.getElementById('f-phone').value,purveyor:document.getElementById('f-purv').value,billing:document.getElementById('f-bill').value,po:document.getElementById('f-po').value,devices:parseInt(document.getElementById('f-devs').value)||0,items:lineItems.map(i=>({desc:i.desc,qty:i.qty,price:i.price})),total,paid,notes:document.getElementById('f-notes').value};
+  if(editInvId){const idx=invoices.findIndex(i=>i.id===editInvId);invoices[idx]={...data,id:editInvId};}
+  else{data.id=String(nextNum++);invoices.unshift(data);if(data.custId&&data.devices){const c=customers.find(x=>x.id===data.custId);if(c)c.devices=data.devices;}}
+  closeModal('inv-modal');renderTx();
+}
+function openPrev(id){
+  const inv=invoices.find(i=>i.id===id);if(!inv)return;
+  const bal=inv.total-inv.paid;
+  document.getElementById('prev-content').innerHTML=`
+    <div class="inv-ph"><div><div class="inv-logo">Flow<span>Right</span><br><p>Licensed Backflow Testing &middot; Louisville, KY &middot; (502) 555-0182</p></div></div>
+    <div class="inv-meta"><div class="iid">INVOICE #${inv.id}</div><p>Date: ${new Date(inv.date+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</p><p style="margin-top:8px">${sBadge(inv)}</p></div></div>
+    <div class="inv-pb">
+      <div class="inv-ps"><h4>Bill To</h4><p><strong>${inv.customer}</strong></p>${inv.address?`<p>${inv.address}${inv.city?', '+inv.city:''}</p>`:''}${inv.contact?`<p>${inv.contact}${inv.phone?' &middot; '+inv.phone:''}</p>`:''}${inv.billing==='3rd'?'<p style="font-size:11px;color:var(--text-muted);margin-top:4px">3rd Party Billing</p>':''}${inv.po?`<p style="font-size:11px;color:var(--text-muted)">PO/WO: ${inv.po}</p>`:''}</div>
+      <div class="inv-ps"><h4>Reporting To</h4><p>${inv.purveyor||'&mdash;'}</p>${inv.devices?`<p style="margin-top:8px;font-size:13px"><strong>Backflow Devices:</strong> ${inv.devices}</p>`:''}${inv.notes?`<p style="margin-top:8px;font-size:12px;color:var(--text-muted);font-style:italic">${inv.notes}</p>`:''}</div>
+    </div>
+    <table class="inv-t"><thead><tr><th>Description</th><th style="text-align:center;width:60px">Qty</th><th style="text-align:right;width:100px">Unit Price</th><th style="text-align:right;width:100px">Total</th></tr></thead>
+    <tbody>${inv.items.map(item=>`<tr><td>${item.desc}</td><td style="text-align:center">${item.qty}</td><td style="text-align:right">${fmt(item.price)}</td><td style="text-align:right;font-weight:600">${fmt(item.qty*item.price)}</td></tr>`).join('')}</tbody></table>
+    <div class="inv-tb">
+      <div class="inv-tl"><span>Subtotal</span><span>${fmt(inv.total)}</span></div>
+      <div class="inv-tl"><span>Amount Paid</span><span style="color:var(--green)">${fmt(inv.paid)}</span></div>
+      <div class="inv-tl grand"><span>Balance Due</span><span style="color:${bal>0?'var(--red)':'var(--green)'}">${fmt(bal)}</span></div>
+    </div>
+    <div class="inv-fn">FlowRight Plumbing LLC &middot; KY License #PL-44821 &middot; Fully Insured<br>Payment due upon receipt. Questions? Call (502) 555-0182 or email service@flowrightplumbing.com</div>`;
+  openModal('prev-modal');
+}
+function openPay(id){
+  const inv=invoices.find(i=>i.id===id);if(!inv)return;
+  payId=id;
+  document.getElementById('pay-inv').value=`#${inv.id} \u2014 ${inv.customer}`;
+  document.getElementById('pay-due').value=fmt(inv.total-inv.paid);
+  document.getElementById('pay-amt').value=(inv.total-inv.paid).toFixed(2);
+  openModal('pay-modal');
+}
+function confirmPay(){
+  const inv=invoices.find(i=>i.id===payId);if(!inv)return;
+  inv.paid=Math.min(inv.paid+(parseFloat(document.getElementById('pay-amt').value)||0),inv.total);
+  closeModal('pay-modal');renderTx();
+}
+function openAddCust(){
+  editCustId=null;
+  document.getElementById('cust-modal-title').textContent='Add Customer Location';
+  ['c-co','c-name','c-addr','c-city','c-contact','c-phone','c-email'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-devs').value='1';
+  document.getElementById('c-purv').value='';
+  document.getElementById('c-bill').value='direct';
+  openModal('cust-modal');
+}
+function openEditCust(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  editCustId=id;
+  document.getElementById('cust-modal-title').textContent='Edit Customer';
+  document.getElementById('c-co').value=c.company||'';
+  document.getElementById('c-name').value=c.name||'';
+  document.getElementById('c-addr').value=c.address||'';
+  document.getElementById('c-city').value=c.city||'';
+  document.getElementById('c-contact').value=c.contact||'';
+  document.getElementById('c-phone').value=c.phone||'';
+  document.getElementById('c-devs').value=c.devices||'';
+  document.getElementById('c-purv').value=c.purveyor||'';
+  document.getElementById('c-bill').value=c.billing||'direct';
+  document.getElementById('c-email').value=c.email||'';
+  openModal('cust-modal');
+}
+function saveCust(){
+  const name=document.getElementById('c-name').value.trim()||document.getElementById('c-co').value.trim();
+  if(!name){alert('Please enter a name.');return;}
+  const data={company:document.getElementById('c-co').value.trim(),name,address:document.getElementById('c-addr').value.trim(),city:document.getElementById('c-city').value.trim(),contact:document.getElementById('c-contact').value.trim(),phone:document.getElementById('c-phone').value.trim(),devices:parseInt(document.getElementById('c-devs').value)||0,purveyor:document.getElementById('c-purv').value,billing:document.getElementById('c-bill').value,email:document.getElementById('c-email').value.trim()};
+  if(editCustId){const idx=customers.findIndex(c=>c.id===editCustId);customers[idx]={...data,id:editCustId};}
+  else{data.id='c'+Date.now();customers.push(data);}
+  closeModal('cust-modal');renderDevices();updateHdr();
+}
+function delCust(id){if(!confirm('Remove this customer? Existing invoices are kept.'))return;customers=customers.filter(c=>c.id!==id);renderDevices();updateHdr();}
+function delInv(id){if(!confirm('Delete this invoice? Cannot be undone.'))return;invoices=invoices.filter(i=>i.id!==id);renderTx();}
+function sendRem(id,days){const inv=invoices.find(i=>i.id===id);if(!inv)return;inv.notes=days+'-day reminder sent \u00b7 '+new Date().toLocaleDateString();alert(`Email reminder drafted for ${inv.customer}\n(Invoice #${inv.id} \u2014 ${fmt(inv.total-inv.paid)} due)`);renderOverdue();}
+function exportCSV(){
+  const rows=[['Invoice #','Date Billed','Customer','City','Devices','Amount','Paid','Balance','Status']];
+  invoices.forEach(inv=>rows.push([inv.id,inv.date,`"${inv.customer}"`,inv.city||'',inv.devices||0,inv.total.toFixed(2),inv.paid.toFixed(2),(inv.total-inv.paid).toFixed(2),gStatus(inv)]));
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));a.download='flowright-transactions.csv';a.click();
+}
+
+
+// ── DEVICE RECORDS (per customer) ──────────────────────────────
+// Structure: deviceRecords[custId] = [{id, name, serial, type, mfr, model, size, loc, year, tested, result, notes}]
+const deviceRecords = {
+  'c1':[{id:'d1',name:'RPZ Backflow Preventer',serial:'WTT-4421',type:'RPZ - Reduced Pressure Zone',mfr:'Watts',model:'LF909',size:'3/4"',loc:'Utility closet',year:2018,tested:'2024-04-12',result:'pass',notes:''}],
+  'c3':[{id:'d2',name:'RPZ Backflow Preventer #1',serial:'FB-8801',type:'RPZ - Reduced Pressure Zone',mfr:'Febco',model:'860',size:'1"',loc:'Rear mechanical room',year:2016,tested:'2024-04-14',result:'pass',notes:''},{id:'d3',name:'RPZ Backflow Preventer #2',serial:'FB-8802',type:'RPZ - Reduced Pressure Zone',mfr:'Febco',model:'860',size:'1"',loc:'Front utility room',year:2016,tested:'2024-04-14',result:'fail',notes:'Test cock replaced on site'}],
+  'c6':[{id:'d4',name:'RPZ Assembly A',serial:'WK-1100',type:'RPZ - Reduced Pressure Zone',mfr:'Wilkins',model:'375',size:'2"',loc:'Boiler room',year:2014,tested:'2024-03-28',result:'pass',notes:''},{id:'d5',name:'RPZ Assembly B',serial:'WK-1101',type:'RPZ - Reduced Pressure Zone',mfr:'Wilkins',model:'375',size:'2"',loc:'Boiler room',year:2014,tested:'2024-03-28',result:'pass',notes:''},{id:'d6',name:'DC Valve - Irrigation',serial:'AB-0022',type:'DC - Double Check Valve',mfr:'Ames',model:'2000SS',size:'1"',loc:'Exterior south wall',year:2019,tested:'2024-03-28',result:'pass',notes:''},{id:'d7',name:'PVB - Hose Station',serial:'',type:'PVB - Pressure Vacuum Breaker',mfr:'Watts',model:'800M4',size:'3/4"',loc:'Kitchen, under sink',year:2020,tested:'2024-03-28',result:'pass',notes:''}],
+  'c7':[{id:'d8',name:'RPZ - Main Building',serial:'CP-5501',type:'RPZ - Reduced Pressure Zone',mfr:'Febco',model:'825Y',size:'2"',loc:'Main utility room',year:2012,tested:'2024-03-15',result:'pass',notes:''},{id:'d9',name:'RPZ - Pool House',serial:'CP-5502',type:'RPZ - Reduced Pressure Zone',mfr:'Febco',model:'825Y',size:'1.5"',loc:'Pool equipment room',year:2012,tested:'2024-03-15',result:'pass',notes:''},{id:'d10',name:'DC Valve - Irrigation East',serial:'',type:'DC - Double Check Valve',mfr:'Watts',model:'007',size:'1"',loc:'East irrigation vault',year:2017,tested:'2024-03-15',result:'pass',notes:''},{id:'d11',name:'DC Valve - Irrigation West',serial:'',type:'DC - Double Check Valve',mfr:'Watts',model:'007',size:'1"',loc:'West irrigation vault',year:2017,tested:'2024-03-15',result:'pass',notes:''},{id:'d12',name:'PVB - Concession Stand',serial:'CC-7701',type:'PVB - Pressure Vacuum Breaker',mfr:'Wilkins',model:'720A',size:'3/4"',loc:'Concession stand, rear',year:2015,tested:'2024-03-15',result:'fail',notes:'Rebuilt on site, recertified'}],
+};
+let viewingCustId = null;
+let editDevId = null;
+
+function openDetail(custId) {
+  viewingCustId = custId;
+  const c = customers.find(x => x.id === custId);
+  if (!c) return;
+  document.getElementById('dp-title').textContent = c.name;
+  document.getElementById('dp-sub').textContent = (c.address ? c.address + ', ' : '') + (c.city || '');
+  // meta bar
+  document.getElementById('dp-meta').innerHTML = [
+    c.contact ? `<div class="dp-meta-item"><strong>Contact</strong>${c.contact}${c.phone ? ' &middot; ' + c.phone : ''}</div>` : '',
+    c.purveyor ? `<div class="dp-meta-item"><strong>Purveyor</strong>${c.purveyor}</div>` : '',
+    `<div class="dp-meta-item"><strong>Billing</strong>${c.billing === '3rd' ? '3rd Party' : 'Direct'}</div>`,
+    c.email ? `<div class="dp-meta-item"><strong>Email</strong>${c.email}</div>` : '',
+  ].filter(Boolean).join('');
+  renderDetailBody(custId);
+  document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('dp-overlay').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('dp-overlay').classList.remove('open');
+  viewingCustId = null;
+}
+
+function renderDetailBody(custId) {
+  const devs = deviceRecords[custId] || [];
+  const invs = invoices.filter(i => i.custId === custId).sort((a, b) => new Date(b.date) - new Date(a.date));
+  let html = '';
+
+  // ── DEVICES SECTION ──
+  html += `<div class="dp-section-hdr">
+    <h3>&#128295; Backflow Devices (${devs.length})</h3>
+    <button class="btn btn-green btn-sm" onclick="openAddDevice('${custId}')">+ Add Device</button>
+  </div>`;
+  if (!devs.length) {
+    html += '<div style="padding:24px 20px;font-size:13px;color:var(--text-muted);text-align:center">No devices recorded yet. Click + Add Device to start.</div>';
+  } else {
+    html += devs.map((dv, idx) => {
+      const lastTested = dv.tested ? new Date(dv.tested + 'T12:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'Not tested';
+      const nextDue = dv.tested ? new Date(new Date(dv.tested).setFullYear(new Date(dv.tested).getFullYear() + 1)).toLocaleDateString('en-US', {month:'short', year:'numeric'}) : '—';
+      const daysUntilDue = dv.tested ? Math.floor((new Date(dv.tested + 'T12:00:00').setFullYear(new Date(dv.tested + 'T12:00:00').getFullYear() + 1) - new Date()) / 86400000) : null;
+      const dueClass = daysUntilDue !== null ? (daysUntilDue < 0 ? 'fail' : daysUntilDue < 60 ? 'due' : 'pass') : '';
+      const dueLabel = daysUntilDue !== null ? (daysUntilDue < 0 ? 'OVERDUE' : daysUntilDue < 60 ? 'Due soon' : 'Current') : '';
+      const resultClass = dv.result === 'pass' ? 'pass' : dv.result ? 'fail' : '';
+      const resultLabel = {pass:'Pass', 'fail':'Fail/Repaired', replaced:'Replaced', '':'Unknown'}[dv.result] || dv.result;
+      return `<div class="dp-device-row">
+        <div class="dp-dev-num">${idx + 1}</div>
+        <div class="dp-dev-info">
+          <div class="dp-dev-name">${dv.name || dv.type || 'Unnamed Device'}</div>
+          <div class="dp-dev-meta">
+            ${dv.type ? `<span class="dp-dev-tag">${dv.type}</span>` : ''}
+            ${dv.mfr || dv.model ? `<span class="dp-dev-tag">${[dv.mfr, dv.model].filter(Boolean).join(' ')}</span>` : ''}
+            ${dv.size ? `<span class="dp-dev-tag">${dv.size}</span>` : ''}
+            ${dv.serial ? `<span class="dp-dev-tag">SN: ${dv.serial}</span>` : ''}
+            ${dv.loc ? `<span class="dp-dev-tag">&#128205; ${dv.loc}</span>` : ''}
+          </div>
+          <div class="dp-dev-meta" style="margin-top:4px">
+            <span class="dp-dev-tag">Last tested: ${lastTested}</span>
+            ${dv.result ? `<span class="dp-dev-tag ${resultClass}">${resultLabel}</span>` : ''}
+            ${daysUntilDue !== null ? `<span class="dp-dev-tag ${dueClass}">Next due: ${nextDue} ${dueLabel ? '&mdash; ' + dueLabel : ''}</span>` : ''}
+            ${dv.notes ? `<span class="dp-dev-tag" style="font-style:italic">${dv.notes}</span>` : ''}
+          </div>
+          <div class="dp-dev-actions">
+            <button class="btn btn-ghost btn-sm" onclick="openEditDevice('${custId}','${dv.id}')">&#9999;&#65039; Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="delDevice('${custId}','${dv.id}')">&#128465; Remove</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── INVOICE HISTORY SECTION ──
+  html += `<div class="dp-section-hdr" style="margin-top:4px"><h3>&#129534; Invoice History (${invs.length})</h3><button class="btn btn-green btn-sm" onclick="closeDetail();openNewInvFor('${custId}')">+ New Invoice</button></div>`;
+  if (!invs.length) {
+    html += '<div style="padding:24px 20px;font-size:13px;color:var(--text-muted);text-align:center">No invoices yet for this customer.</div>';
+  } else {
+    html += invs.map(inv => `<div class="dp-invoice-row">
+      <div>
+        <span class="inv-num" style="font-size:14px">#${inv.id}</span>
+        <span style="font-size:12px;color:var(--text-muted);margin-left:8px">${new Date(inv.date + 'T12:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        ${dPill(inv.devices)}
+        <span class="amount">${fmt(inv.total)}</span>
+        ${sBadge(inv)}
+        <button class="btn btn-ghost btn-sm" onclick="openPrev('${inv.id}')">&#128065;</button>
+      </div>
+    </div>`).join('');
+  }
+  document.getElementById('dp-body').innerHTML = html;
+}
+
+function openAddDevice(custId) {
+  editDevId = null;
+  viewingCustId = custId;
+  document.getElementById('dev-modal-title').textContent = 'Add Device';
+  ['dv-name','dv-serial','dv-mfr','dv-model','dv-size','dv-loc','dv-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('dv-type').value = '';
+  document.getElementById('dv-year').value = '';
+  document.getElementById('dv-tested').value = '';
+  document.getElementById('dv-result').value = '';
+  closeModal('device-modal');
+  openModal('device-modal');
+}
+function openEditDevice(custId, devId) {
+  viewingCustId = custId;
+  editDevId = devId;
+  const devs = deviceRecords[custId] || [];
+  const dv = devs.find(d => d.id === devId);
+  if (!dv) return;
+  document.getElementById('dev-modal-title').textContent = 'Edit Device';
+  document.getElementById('dv-name').value = dv.name || '';
+  document.getElementById('dv-serial').value = dv.serial || '';
+  document.getElementById('dv-type').value = dv.type || '';
+  document.getElementById('dv-mfr').value = dv.mfr || '';
+  document.getElementById('dv-model').value = dv.model || '';
+  document.getElementById('dv-size').value = dv.size || '';
+  document.getElementById('dv-loc').value = dv.loc || '';
+  document.getElementById('dv-year').value = dv.year || '';
+  document.getElementById('dv-tested').value = dv.tested || '';
+  document.getElementById('dv-result').value = dv.result || '';
+  document.getElementById('dv-notes').value = dv.notes || '';
+  openModal('device-modal');
+}
+function saveDevice() {
+  const custId = viewingCustId;
+  if (!custId) return;
+  if (!deviceRecords[custId]) deviceRecords[custId] = [];
+  const data = {
+    name: document.getElementById('dv-name').value.trim(),
+    serial: document.getElementById('dv-serial').value.trim(),
+    type: document.getElementById('dv-type').value,
+    mfr: document.getElementById('dv-mfr').value.trim(),
+    model: document.getElementById('dv-model').value.trim(),
+    size: document.getElementById('dv-size').value.trim(),
+    loc: document.getElementById('dv-loc').value.trim(),
+    year: parseInt(document.getElementById('dv-year').value) || null,
+    tested: document.getElementById('dv-tested').value,
+    result: document.getElementById('dv-result').value,
+    notes: document.getElementById('dv-notes').value.trim(),
+  };
+  if (!data.name && !data.type) { alert('Please enter a device name or select a type.'); return; }
+  if (editDevId) {
+    const idx = deviceRecords[custId].findIndex(d => d.id === editDevId);
+    deviceRecords[custId][idx] = { ...data, id: editDevId };
+  } else {
+    data.id = 'dv' + Date.now();
+    deviceRecords[custId].push(data);
+    // sync count back to customer
+    const c = customers.find(x => x.id === custId);
+    if (c) c.devices = deviceRecords[custId].length;
+  }
+  closeModal('device-modal');
+  renderDetailBody(custId);
+  renderDevices();
+  updateHdr();
+}
+function delDevice(custId, devId) {
+  if (!confirm('Remove this device from the list?')) return;
+  deviceRecords[custId] = (deviceRecords[custId] || []).filter(d => d.id !== devId);
+  const c = customers.find(x => x.id === custId);
+  if (c) c.devices = deviceRecords[custId].length;
+  renderDetailBody(custId);
+  renderDevices();
+  updateHdr();
+}
+
+
+// ── LWC REPORT VIEW ──────────────────────────────────────────────
+function initReportView() {
+  const sel = document.getElementById('r-customer');
+  if (sel.options.length <= 1) {
+    customers.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id; opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+  }
+  if (!document.getElementById('r-date').value) {
+    document.getElementById('r-date').value = new Date().toISOString().split('T')[0];
+  }
+}
+
+function onReportCustChange() {
+  const custId = document.getElementById('r-customer').value;
+  const sel = document.getElementById('r-device');
+  sel.innerHTML = '<option value="all">All devices (one form each)</option>';
+  if (!custId) { document.getElementById('report-output').innerHTML = '<div class="report-empty"><div class="icon">&#128196;</div><h3>Select a customer above</h3></div>'; return; }
+  const devs = deviceRecords[custId] || [];
+  devs.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = (d.name || d.type || 'Device') + (d.serial ? ' (' + d.serial + ')' : '');
+    sel.appendChild(opt);
+  });
+  renderReport();
+}
+
+function renderReport() {
+  const custId = document.getElementById('r-customer').value;
+  if (!custId) return;
+  const cust = customers.find(c => c.id === custId);
+  const testDate = document.getElementById('r-date').value;
+  const devSel = document.getElementById('r-device').value;
+  let devs = deviceRecords[custId] || [];
+  if (devSel !== 'all') devs = devs.filter(d => d.id === devSel);
+  const note = document.getElementById('r-form-count');
+  if (!devs.length) {
+    note.textContent = 'No devices recorded for this customer';
+    document.getElementById('report-output').innerHTML = '<div class="report-empty"><div class="icon">&#128295;</div><h3>No device records found</h3><p>Add devices in the Devices tab first</p></div>';
+    return;
+  }
+  note.textContent = devs.length + ' form' + (devs.length > 1 ? 's' : '') + ' will print';
+  document.getElementById('report-output').innerHTML = devs.map((dv, i) => `
+    <div class="form-page">
+      <div class="form-page-label">
+        <span>Form ${i+1} of ${devs.length}</span>
+        <span class="device-badge">&#128295; ${dv.name || dv.type}</span>
+        <span style="font-size:12px;color:var(--gray);margin-left:4px">&middot; ${dv.loc || 'Location not set'}</span>
+      </div>
+      ${buildForm(cust, dv, testDate)}
+    </div>`).join('');
+}
+
+function openStandalone() {
+  const a = document.createElement('a');
+  a.href = 'lwc-test-report.html';
+  a.target = '_blank';
+  a.click();
+}
+
+const testerInfo = {
+  name: 'FlowRight Plumbing LLC',
+  certNum: 'PL-44821',
+  address: 'Louisville, KY 40202',
+  phone: '(502) 555-0182'
+};
+
+// ── INIT ──────────────────────────────────────────────────────────
+// sel-customer is in the LWC Report view — only populate when it exists
+const selCustDropdown = document.getElementById('sel-customer');
+if (selCustDropdown) {
+  customers.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    selCustDropdown.appendChild(opt);
+  });
+}
+const selDateEl = document.getElementById('sel-date');
+if (selDateEl) selDateEl.value = new Date().toISOString().split('T')[0];
+
+function onCustomerChange() {
+  const custId = document.getElementById('sel-customer').value;
+  const sel = document.getElementById('sel-device');
+  sel.innerHTML = '<option value="all">All devices (one form each)</option>';
+  if (!custId) { document.getElementById('forms-output').innerHTML = emptyState(); return; }
+  const devs = deviceRecords[custId] || [];
+  devs.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.name || d.type || 'Device ' + d.id;
+    sel.appendChild(opt);
+  });
+  renderForms();
+}
+
+function renderForms() {
+  const custId = document.getElementById('sel-customer').value;
+  if (!custId) { document.getElementById('forms-output').innerHTML = emptyState(); return; }
+  const cust = customers.find(c => c.id === custId);
+  const testDate = document.getElementById('sel-date').value;
+  const devSel = document.getElementById('sel-device').value;
+  let devs = deviceRecords[custId] || [];
+  if (devSel !== 'all') devs = devs.filter(d => d.id === devSel);
+
+  const note = document.getElementById('form-count-note');
+  if (!devs.length) {
+    note.textContent = 'No devices recorded for this customer';
+    document.getElementById('forms-output').innerHTML = `<div style="text-align:center;padding:40px;color:#8a9bb5"><div style="font-size:36px;margin-bottom:12px">🔧</div><div style="font-size:14px;color:#1a2540;font-weight:600">No device records found</div><div style="font-size:13px;margin-top:6px">Add devices in the Device Tracker first</div></div>`;
+    return;
+  }
+  note.textContent = devs.length + ' form' + (devs.length > 1 ? 's' : '') + ' will print';
+
+  document.getElementById('forms-output').innerHTML = devs.map((dv, i) => `
+    <div class="form-page">
+      <div class="form-page-label no-print">
+        <span>Form ${i+1} of ${devs.length}</span>
+        <span class="device-badge">🔧 ${dv.name || dv.type}</span>
+        <span style="font-size:12px;color:#8a9bb5;margin-left:4px">· ${dv.loc || 'Location not set'}</span>
+      </div>
+      ${buildForm(cust, dv, testDate)}
+    </div>
+  `).join('');
+}
+
+function buildForm(c, dv, testDate) {
+  const isRPZ = dv.typeShort === 'RPZ';
+  const isDC  = dv.typeShort === 'DC';
+  const isPVB = dv.typeShort === 'PVB';
+  const passed = dv.result === 'pass';
+  const fmtDate = d => { if (!d) return ''; const dt = new Date(d + 'T12:00:00'); return (dt.getMonth()+1) + '/' + dt.getDate() + '/' + dt.getFullYear(); };
+  const displayDate = fmtDate(testDate || dv.tested);
+  const cb = checked => `<span class="cb${checked?' checked':''}">${checked?'×':''}</span>`;
+
+  return `<div class="lwc-form">
+
+    <!-- HEADER -->
+    <div class="lwc-header">
+      <div class="lwc-logo-box">
+        <div style="text-align:center;font-size:8pt;font-weight:bold;line-height:1.3">
+          <div style="font-size:18pt;font-weight:bold;line-height:1">💧</div>
+          <div>WATER</div>
+          <div class="lwc-since">since 1854</div>
+        </div>
+      </div>
+      <div class="lwc-title-block">
+        <div class="lwc-co-name">LOUISVILLE WATER COMPANY</div>
+        <div class="lwc-fax-line">Fax to: Louisville Water Company &nbsp;&nbsp; <em>Att:</em> Cross Connection Control</div>
+        <div class="lwc-fax-nums">Fax (502) 569-0848 &nbsp;&nbsp; Phone (502) 569-3600, ext. 2407</div>
+        <div class="lwc-report-title">Backflow Prevention Device Test and Maintenance Report</div>
+        <div class="lwc-report-sub">Please complete and return <u><em>only containment</em></u> device results to the Louisville Water Company</div>
+      </div>
+    </div>
+
+    <!-- GENERAL INFORMATION -->
+    <div class="sec-hdr">GENERAL INFORMATION:</div>
+    <table class="field-table">
+      <tr>
+        <td class="field-label" rowspan="2" style="width:120px;vertical-align:middle">These results are for:</td>
+        <td colspan="3" style="padding:3px 8px">
+          <div class="cb-row">
+            ${cb(true)} <span class="cb-label">An existing device</span>
+            ${cb(false)} <span class="cb-label">A replacement device</span>
+          </div>
+          <div class="cb-row" style="margin-top:3px">
+            ${cb(false)} A new device:&nbsp; <strong>Required DOP Plumbing Permit #:</strong> <span class="field-val" style="display:inline-block;min-width:120px;border-bottom:1px solid #999">&nbsp;</span>
+          </div>
+        </td>
+        <td style="width:100px;border:1px solid #000;text-align:center;font-weight:bold;font-size:8.5pt;vertical-align:top;padding:2px 4px">
+          TEST DATE<br>
+          <span class="field-val filled" style="font-size:10pt;display:block;text-align:center;margin-top:2px">${displayDate}</span>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="4" style="padding:3px 8px">
+          <span style="font-weight:bold">Service type:&nbsp;</span>
+          ${cb(dv.serviceType==='Domestic')} <span class="cb-label">Domestic</span>
+          ${cb(dv.serviceType==='Fire')} <span class="cb-label">Fire</span>
+          ${cb(dv.serviceType==='Irrigation')} <span class="cb-label">Irrigation</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="field-label">Company name:</td>
+        <td colspan="2" class="field-val filled">${c.company || c.name}</td>
+        <td class="field-label">Phone:</td>
+        <td class="field-val filled">${c.phone || ''}</td>
+      </tr>
+      <tr>
+        <td class="field-label">Service address:</td>
+        <td colspan="2" class="field-val filled">${c.address || ''}</td>
+        <td class="field-label">Fax:</td>
+        <td class="field-val">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="field-label">City:</td>
+        <td class="field-val filled" style="width:160px">${c.city || ''}</td>
+        <td style="white-space:nowrap"><span class="field-label">Zip:</span> <span class="field-val filled">${c.zip||''}</span></td>
+        <td class="field-label">Email address:</td>
+        <td class="field-val filled">${c.email || ''}</td>
+      </tr>
+      <tr>
+        <td class="field-label">Contact person:</td>
+        <td colspan="2" class="field-val filled">${c.contact || ''}</td>
+        <td class="field-label">LWC account #:</td>
+        <td class="field-val filled">${c.lwcAcct || ''}</td>
+      </tr>
+      <tr>
+        <td class="field-label">Customer signature:</td>
+        <td colspan="4" class="field-val" style="min-height:22px">&nbsp;</td>
+      </tr>
+    </table>
+
+    <!-- DEVICE DATA -->
+    <div class="sec-hdr">DEVICE DATA:</div>
+    <table class="dev-table">
+      <tr class="location-row">
+        <td colspan="7"><strong>Location:</strong> <span class="filled">${dv.loc || ''}</span></td>
+      </tr>
+      <tr>
+        <th>Manufacturer</th>
+        <th>Model #</th>
+        <th>Serial #</th>
+        <th>Type (RPZ, DC, etc.)</th>
+        <th>Device size</th>
+        <th>Meter #</th>
+        <th>Is this a Bypass?</th>
+      </tr>
+      <tr>
+        <td class="filled">${dv.mfr || ''}</td>
+        <td class="filled">${dv.model || ''}</td>
+        <td class="filled">${dv.serial || ''}</td>
+        <td class="filled">${dv.typeShort || dv.type || ''}</td>
+        <td class="filled">${dv.size || ''}</td>
+        <td class="filled">${dv.meter || ''}</td>
+        <td style="text-align:center">
+          <div class="cb-row">${cb(dv.bypass===true)} Yes</div>
+          <div class="cb-row" style="margin-top:3px">${cb(dv.bypass!==true)} No</div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- TEST RESULTS -->
+    <div class="sec-hdr">BACKFLOW DEVICE TEST RESULTS:</div>
+    <div class="results-outer">
+
+      <!-- Column headers row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #000">
+        <div style="border-right:1px solid #000">
+          <div style="font-weight:bold;font-size:9.5pt;text-align:center;padding:3px 6px;border-bottom:1px solid #000">REDUCED PRESSURE ZONE (RPZ)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:0">
+            <div style="font-weight:bold;font-size:9pt;text-align:center;padding:2px 6px;border-right:1px solid #000">DOUBLE CHECK VALVE (DCV)</div>
+            <div>&nbsp;</div>
+          </div>
+        </div>
+        <div style="font-weight:bold;font-size:9.5pt;text-align:center;padding:3px 6px;display:flex;align-items:center;justify-content:center">PRESSURE VACUUM<br>BREAKER AIR INLET</div>
+      </div>
+
+      <!-- Test data row -->
+      <div style="display:grid;grid-template-columns:180px 1fr 1fr 180px;border-bottom:1px solid #000">
+
+        <!-- PRV (RPZ only) -->
+        <div style="border-right:1px solid #000;padding:6px 8px;font-size:9pt">
+          <div style="font-weight:bold;margin-bottom:4px">Pressure Relief Valve</div>
+          <div style="margin-bottom:4px">Opened at <span class="psid-field">${isRPZ ? (dv.prvOpen||'') : ''}</span> PSID</div>
+          <div class="cb-row">${cb(!isRPZ || dv.prvOpen==='')} Did Not Open</div>
+        </div>
+
+        <!-- CV1 -->
+        <div style="border-right:1px solid #000;padding:6px 8px;font-size:9pt">
+          <div style="font-weight:bold;margin-bottom:4px">Check Valve No.1</div>
+          <div class="cb-row" style="margin-bottom:3px">${cb((isRPZ||isDC) && dv.cv1Leaked)} 1. Leaked</div>
+          <div class="cb-row" style="margin-bottom:3px">${cb((isRPZ||isDC) && dv.cv1Closed)} 2. Closed Tight</div>
+          <div style="margin-top:2px">3. Pressure <span class="psid-field">${(isRPZ||isDC) ? (dv.cv1Psi||'') : ''}</span> PSID</div>
+        </div>
+
+        <!-- CV2 -->
+        <div style="border-right:1px solid #000;padding:6px 8px;font-size:9pt">
+          <div style="font-weight:bold;margin-bottom:4px">Check Valve No.2</div>
+          <div class="cb-row" style="margin-bottom:3px">${cb((isRPZ||isDC) && dv.cv2Leaked)} 1. Leaked</div>
+          <div class="cb-row" style="margin-bottom:3px">${cb((isRPZ||isDC) && dv.cv2Closed)} 2. Closed Tight</div>
+          <div style="margin-top:2px">3. Pressure <span class="psid-field">${(isRPZ||isDC) ? (dv.cv2Psi||'') : ''}</span> PSID</div>
+        </div>
+
+        <!-- PVB -->
+        <div style="padding:6px 8px;font-size:9pt">
+          <div style="margin-bottom:4px">Opened at <span class="psid-field">${isPVB ? (dv.prvOpen||'') : ''}</span> PSID</div>
+          <div class="cb-row" style="margin-bottom:4px">${cb(isPVB && dv.cv1Leaked)} Leaked</div>
+          <div style="margin-bottom:4px">Check Valve closed tight at</div>
+          <div style="margin-bottom:4px"><span class="psid-field">${isPVB ? (dv.cv1Psi||'') : ''}</span> PSID</div>
+          <div class="cb-row">${cb(isPVB && dv.cv2Leaked)} Leaked</div>
+        </div>
+      </div>
+
+      <!-- PASS / FAIL / MAIN LINE PSI -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr">
+        <div style="border-right:1px solid #000;padding:5px 8px;font-size:11pt;font-weight:bold;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px">
+          ${cb(passed)} PASSED
+        </div>
+        <div style="border-right:1px solid #000;padding:5px 8px;font-size:11pt;font-weight:bold;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px">
+          ${cb(!passed)} FAILED
+        </div>
+        <div style="padding:5px 8px;font-size:10pt;font-weight:bold;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px">
+          <span class="psid-field" style="font-size:11pt">${dv.mainPsi||''}</span> MAIN LINE PSI
+        </div>
+      </div>
+    </div>
+
+    <!-- REPAIRS -->
+    <table class="repairs-table">
+      <tr>
+        <td class="repairs-label"><strong>Repairs/Comments:</strong></td>
+        <td class="field-val filled">${dv.notes || ''}&nbsp;</td>
+      </tr>
+      <tr><td colspan="2" style="border:1px solid #000;min-height:16px;height:16px">&nbsp;</td></tr>
+    </table>
+
+    <!-- TESTER INFO -->
+    <div class="sec-hdr" style="display:flex;justify-content:space-between"><span><em>TESTER INFORMATION:</em></span><span>This report is certified to be true.</span></div>
+    <table class="tester-table">
+      <tr>
+        <td class="tester-label">Tester (print)</td>
+        <td class="field-val filled" style="width:46%">${testerInfo.name}</td>
+        <td class="tester-label">Signature</td>
+        <td class="field-val" style="min-height:22px">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="tester-label">Company</td>
+        <td class="field-val filled">${testerInfo.name}</td>
+        <td class="tester-label">Cert. #</td>
+        <td class="field-val filled">${testerInfo.certNum}</td>
+      </tr>
+      <tr>
+        <td class="tester-label">Address</td>
+        <td class="field-val filled">${testerInfo.address}</td>
+        <td class="tester-label">Phone</td>
+        <td class="field-val filled">${testerInfo.phone}</td>
+      </tr>
+    </table>
+
+    <!-- FOOTER -->
+    <div class="lwc-footer">
+      <p>All repairs are to be made within 10 days and this report must be filed with LWC within 15 days of testing. Please fax forms.</p>
+      <p class="bold-note">PLEASE DO NOT SEND RESULTS FOR INTERNAL ISOLATION DEVICES TO LWC.</p>
+    </div>
+    <div class="form-num"><span>FM 266-114</span><span>Rev date: 1/11/12</span></div>
+
+  </div>`;
+}
+
+function emptyState() {
+  return `<div style="text-align:center;padding:60px 20px;color:#8a9bb5"><div style="font-size:48px;margin-bottom:16px">📄</div><div style="font-size:16px;font-weight:600;color:#1a2540;margin-bottom:6px">Select a customer above</div><div style="font-size:13px">The LWC Backflow Test Report will auto-fill from your device records</div></div>`;
+}
+
+// Patch customers with zip/lwcAcct/email if missing
+const custPatches = {
+  'c1':{zip:'47150',lwcAcct:'',email:''},'c2':{zip:'47150',lwcAcct:'',email:''},'c3':{zip:'47150',lwcAcct:'',email:''},
+  'c4':{zip:'47130',lwcAcct:'',email:''},'c5':{zip:'47129',lwcAcct:'',email:''},'c6':{zip:'47129',lwcAcct:'',email:''},
+  'c7':{zip:'47129',lwcAcct:'',email:''},'c8':{zip:'47130',lwcAcct:'',email:''},'c9':{zip:'40219',lwcAcct:'',email:''},
+  'c10':{zip:'',lwcAcct:'',email:''},'c11':{zip:'',lwcAcct:'',email:''},'c12':{zip:'',lwcAcct:'',email:''},
+  'c13':{zip:'',lwcAcct:'',email:''},'c14':{zip:'',lwcAcct:'',email:''},'c15':{zip:'47150',lwcAcct:'',email:''},
+  'c16':{zip:'',lwcAcct:'',email:''},'c17':{zip:'',lwcAcct:'',email:''}
+};
+customers.forEach(c => { if (custPatches[c.id]) Object.assign(c, custPatches[c.id]); });
+
+
+
+
+
+// ════════════════════════════════════════════════════════════
+//  DB-AWARE OVERRIDES
+// ════════════════════════════════════════════════════════════
+
+saveCust = async function() {
+  const name = document.getElementById('c-name').value.trim()||document.getElementById('c-co').value.trim();
+  if (!name) { alert('Please enter a name.'); return; }
+  const data = { company: document.getElementById('c-co').value.trim(), name,
+    address: document.getElementById('c-addr').value.trim(), city: document.getElementById('c-city').value.trim(),
+    contact: document.getElementById('c-contact').value.trim(), phone: document.getElementById('c-phone').value.trim(),
+    devices: parseInt(document.getElementById('c-devs').value)||0,
+    purveyor: document.getElementById('c-purv').value, billing: document.getElementById('c-bill').value,
+    email: document.getElementById('c-email').value.trim(), zip: '', lwcAcct: '' };
+  const btn = document.querySelector('#cust-modal .modal-footer .btn-primary');
+  if(btn){ btn.textContent='Saving...'; btn.disabled=true; }
+  const newId = await dbSaveCustomer(data, editCustId);
+  if (editCustId) { const idx=customers.findIndex(c=>c.id===editCustId); customers[idx]={...data,id:editCustId}; }
+  else { data.id=newId; customers.push(data); }
+  closeModal('cust-modal');
+  if(btn){ btn.textContent='&#128190; Save'; btn.disabled=false; }
+  renderDevices(); updateHdr();
+  showToast(editCustId ? 'Customer updated!' : '&#10003; Customer saved to Google Sheets!');
+};
+
+delCust = async function(id) {
+  if (!confirm('Remove this customer? Existing invoices are kept.')) return;
+  await dbDeleteCustomer(id);
+  customers=customers.filter(c=>c.id!==id); renderDevices(); updateHdr();
+};
+
+saveDevice = async function() {
+  const custId=viewingCustId; if (!custId) return;
+  if (!deviceRecords[custId]) deviceRecords[custId]=[];
+  const data={ name:document.getElementById('dv-name').value.trim(), serial:document.getElementById('dv-serial').value.trim(),
+    type:document.getElementById('dv-type').value, typeShort:(document.getElementById('dv-type').value||'').split(' ')[0],
+    mfr:document.getElementById('dv-mfr').value.trim(), model:document.getElementById('dv-model').value.trim(),
+    size:document.getElementById('dv-size').value.trim(), loc:document.getElementById('dv-loc').value.trim(),
+    year:parseInt(document.getElementById('dv-year').value)||null, tested:document.getElementById('dv-tested').value,
+    result:document.getElementById('dv-result').value, notes:document.getElementById('dv-notes').value.trim(),
+    serviceType:'Domestic', mainPsi:'', prvOpen:'', cv1Leaked:false, cv1Closed:false,
+    cv1Psi:'', cv2Leaked:false, cv2Closed:false, cv2Psi:'', meter:'', bypass:false };
+  if (!data.name&&!data.type) { alert('Please enter a device name or select a type.'); return; }
+  const newId=await dbSaveDevice(data,custId,editDevId);
+  if (editDevId) { const idx=deviceRecords[custId].findIndex(d=>d.id===editDevId); deviceRecords[custId][idx]={...data,id:editDevId}; }
+  else { data.id=newId; deviceRecords[custId].push(data); const c=customers.find(x=>x.id===custId); if(c) c.devices=deviceRecords[custId].length; }
+  closeModal('device-modal'); renderDetailBody(custId); renderDevices(); updateHdr();
+};
+
+delDevice = async function(custId,devId) {
+  if (!confirm('Remove this device?')) return;
+  await dbDeleteDevice(devId);
+  deviceRecords[custId]=(deviceRecords[custId]||[]).filter(d=>d.id!==devId);
+  const c=customers.find(x=>x.id===custId); if(c) c.devices=deviceRecords[custId].length;
+  renderDetailBody(custId); renderDevices(); updateHdr();
+};
+
+saveInv = async function() {
+  const customer=document.getElementById('f-cust').value.trim();
+  if (!customer) { alert('Please enter a customer name.'); return; }
+  if (!lineItems.length) { alert('Please add at least one line item.'); return; }
+  const total=lineItems.reduce((s,i)=>s+i.qty*i.price,0);
+  const paid=parseFloat(document.getElementById('f-paid').value)||0;
+  const data={ customer, date:document.getElementById('f-date').value, custId:selCustId||null,
+    address:document.getElementById('f-addr').value, city:document.getElementById('f-city').value,
+    contact:document.getElementById('f-contact').value, phone:document.getElementById('f-phone').value,
+    purveyor:document.getElementById('f-purv').value, billing:document.getElementById('f-bill').value,
+    po:document.getElementById('f-po').value, devices:parseInt(document.getElementById('f-devs').value)||0,
+    items:lineItems.map(i=>({desc:i.desc,qty:i.qty,price:i.price})), total, paid,
+    notes:document.getElementById('f-notes').value };
+  if (editInvId) {
+    data.id=editInvId;
+    invoices[invoices.findIndex(i=>i.id===editInvId)]=data;
+    await dbSaveInvoice(data,true);
+  } else {
+    data.id=String(nextNum++);
+    invoices.unshift(data);
+    if (data.custId&&data.devices) { const c=customers.find(x=>x.id===data.custId); if(c) c.devices=data.devices; }
+    await dbSaveInvoice(data,false);
+  }
+  closeModal('inv-modal'); renderTx();
+};
+
+delInv = async function(id) {
+  if (!confirm('Delete this invoice? Cannot be undone.')) return;
+  await dbDeleteInvoice(id); invoices=invoices.filter(i=>i.id!==id); renderTx();
+};
+
+confirmPay = async function() {
+  const inv=invoices.find(i=>i.id===payId); if (!inv) return;
+  inv.paid=Math.min(inv.paid+(parseFloat(document.getElementById('pay-amt').value)||0),inv.total);
+  await dbUpdatePayment(inv.id,inv.paid); closeModal('pay-modal'); renderTx();
+};
+
+// ── BOOT ──────────────────────────────────────────────────────
+loadAllData();
+
+
+function showToast(msg, duration=3000) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.innerHTML = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+</script>
+
+<!-- DETAIL PANEL OVERLAY -->
+<div class="detail-overlay" id="dp-overlay" onclick="closeDetail()"></div>
+
+<!-- CUSTOMER DETAIL PANEL -->
+<div class="detail-panel" id="detail-panel">
+  <div class="dp-header" style="position:relative">
+    <div class="dp-title" id="dp-title">Customer</div>
+    <div class="dp-sub" id="dp-sub">Location details</div>
+    <button class="dp-close" onclick="closeDetail()">&#10005;</button>
+  </div>
+  <div class="dp-meta" id="dp-meta"></div>
+  <div class="dp-body" id="dp-body"></div>
+</div>
+
+<!-- ADD/EDIT DEVICE MODAL -->
+<div class="modal-overlay" id="device-modal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header"><div class="modal-title" id="dev-modal-title">Add Device</div><button class="modal-close" onclick="closeModal('device-modal')">&#10005;</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Device Description / Name</label><input type="text" id="dv-name" placeholder="e.g. Reduced Pressure Zone Backflow Preventer"></div>
+        <div class="form-group"><label>Serial # / Device ID</label><input type="text" id="dv-serial" placeholder="SN-00000"></div>
+        <div class="form-group"><label>Device Type</label><select id="dv-type"><option value="">Select...</option><option>RPZ - Reduced Pressure Zone</option><option>DC - Double Check Valve</option><option>PVB - Pressure Vacuum Breaker</option><option>SVB - Spill-Resistant Vacuum Breaker</option><option>AG - Air Gap</option><option>Other</option></select></div>
+        <div class="form-group"><label>Manufacturer</label><input type="text" id="dv-mfr" placeholder="Watts, Febco, Wilkins..."></div>
+        <div class="form-group"><label>Model</label><input type="text" id="dv-model" placeholder="LF909, 850, 375..."></div>
+        <div class="form-group"><label>Size (inches)</label><input type="text" id="dv-size" placeholder='3/4"'></div>
+        <div class="form-group"><label>Location / Description</label><input type="text" id="dv-loc" placeholder="Mechanical room, rear of building..."></div>
+        <div class="form-group"><label>Install Year</label><input type="number" id="dv-year" placeholder="2019" min="1990" max="2030"></div>
+        <div class="form-group"><label>Last Test Date</label><input type="date" id="dv-tested"></div>
+        <div class="form-group"><label>Last Test Result</label><select id="dv-result"><option value="">Unknown</option><option value="pass">Pass</option><option value="fail">Fail - Repaired</option><option value="replaced">Replaced</option></select></div>
+        <div class="form-group full"><label>Notes</label><input type="text" id="dv-notes" placeholder="Any notes about this device..."></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('device-modal')">Cancel</button><button class="btn btn-primary" onclick="saveDevice()">&#128190; Save Device</button></div>
+  </div>
+</div>
+
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+</body>
+</html>
