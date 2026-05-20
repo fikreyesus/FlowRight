@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0050)file:///C:/Users/Fikreyesus/Downloads/index_1.html -->
+<!-- saved from url=(0050)file:///C:/Users/Fikreyesus/Downloads/index_2.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -477,7 +477,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbff}
 //  3. Paste the Web App URL below
 //  4. Paste your Google Sheet ID (from the URL)
 // ════════════════════════════════════════════════════════════
-const GS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwQG6BfoM3jPPof76VIoxDX3m1wGtyU1URxzaCezGWu4Am16uunU-5wnWVlMxvwtME/exec';
+const GS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxTi3YxNJ6nDmQrl-Lh_V7oleqIg1SpemQ8DmgBGu4cJ3INf01Sb8s0EGOHNtjfxr4/exec';
 const GS_SHEET_ID   = '12hMU2YETMaf5wHvqnRQuF3yHq4ztTLW447-hUvykAjI';
 
 const USE_DB = !!(GS_WEBAPP_URL && GS_SHEET_ID);
@@ -487,17 +487,38 @@ const db = {
   async call(action, payload = {}) {
     if (!USE_DB) return null;
     try {
-      const url = GS_WEBAPP_URL + '?action=' + action + '&sheetId=' + GS_SHEET_ID;
-      const r = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload)
-      });
-      if (!r.ok) { console.error('GS error', r.status, await r.text()); return null; }
-      return r.json();
+      // Apps Script requires GET for reads, POST for writes
+      // Use GET with params for getSheet/ping, POST body as text/plain for mutations
+      if (action === 'getSheet' || action === 'ping') {
+        const params = new URLSearchParams({
+          action,
+          sheet: payload.sheet || '',
+          sheetId: GS_SHEET_ID
+        });
+        const r = await fetch(GS_WEBAPP_URL + '?' + params.toString(), {
+          method: 'GET',
+          redirect: 'follow'
+        });
+        if (!r.ok) { console.error('GS GET error', r.status); return null; }
+        const text = await r.text();
+        return JSON.parse(text);
+      } else {
+        // POST mutations — Apps Script accepts text/plain body
+        payload.sheetId = GS_SHEET_ID;
+        payload.action  = action;
+        const r = await fetch(GS_WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload),
+          redirect: 'follow'
+        });
+        if (!r.ok) { console.error('GS POST error', r.status); return null; }
+        const text = await r.text();
+        return JSON.parse(text);
+      }
     } catch(e) { console.error('GS call failed:', e); return null; }
   },
-  getSheet: (name, q='')    => db.call('getSheet', { sheet: name, q }),
+  getSheet: (name)          => db.call('getSheet', { sheet: name }),
   appendRow: (sheet, row)   => db.call('appendRow', { sheet, row }),
   updateRow: (sheet, id, row) => db.call('updateRow', { sheet, id, row }),
   deleteRow: (sheet, id)    => db.call('deleteRow', { sheet, id }),
